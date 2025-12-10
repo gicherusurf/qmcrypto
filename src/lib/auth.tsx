@@ -109,15 +109,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, fullName: string, referralCode: string) => {
-    // First verify the referral code exists
-    const { data: referrer, error: referrerError } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("referral_code", referralCode.toUpperCase())
-      .maybeSingle();
+    const upperCode = referralCode.toUpperCase();
+    
+    // Allow bootstrap code "ADMIN001" for first user signup
+    if (upperCode !== "ADMIN001") {
+      // Verify the referral code exists
+      const { data: referrer, error: referrerError } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("referral_code", upperCode)
+        .maybeSingle();
 
-    if (!referrer || referrerError) {
-      return { error: new Error("Invalid referral code. Please enter a valid sponsor code.") };
+      if (!referrer || referrerError) {
+        return { error: new Error("Invalid referral code. Please enter a valid sponsor code.") };
+      }
     }
 
     const redirectUrl = `${window.location.origin}/`;
