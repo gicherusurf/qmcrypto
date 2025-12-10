@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { Navbar } from "@/components/layout/Navbar";
@@ -6,11 +6,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Wallet, TrendingUp, Users, Clock, Copy, ArrowUpRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { InvestmentDialog } from "@/components/dashboard/InvestmentDialog";
+import { ActiveInvestments } from "@/components/dashboard/ActiveInvestments";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function Dashboard() {
   const { user, profile, loading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [investDialogOpen, setInvestDialogOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -22,6 +27,10 @@ export default function Dashboard() {
     const link = `${window.location.origin}/auth?mode=signup&ref=${profile?.referral_code}`;
     navigator.clipboard.writeText(link);
     toast({ title: "Copied!", description: "Referral link copied to clipboard" });
+  };
+
+  const handleInvestmentSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: ["user-investments"] });
   };
 
   if (loading || !profile) {
@@ -87,8 +96,13 @@ export default function Dashboard() {
           </Card>
         </div>
 
+        {/* Active Investments */}
+        <div className="mb-8 animate-fade-in" style={{ animationDelay: "0.5s" }}>
+          <ActiveInvestments />
+        </div>
+
         {/* Referral Section */}
-        <Card className="glass-card mb-8 animate-fade-in" style={{ animationDelay: "0.5s" }}>
+        <Card className="glass-card mb-8 animate-fade-in" style={{ animationDelay: "0.6s" }}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Users className="h-5 w-5 text-primary" />
@@ -114,14 +128,16 @@ export default function Dashboard() {
         </Card>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in" style={{ animationDelay: "0.6s" }}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in" style={{ animationDelay: "0.7s" }}>
           <Card className="glass-card">
             <CardHeader>
               <CardTitle>New Investment</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground mb-4">Start a new investment package and earn 10% bi-weekly returns.</p>
-              <Button variant="hero">Start Investing</Button>
+              <Button variant="hero" onClick={() => setInvestDialogOpen(true)}>
+                Start Investing
+              </Button>
             </CardContent>
           </Card>
 
@@ -136,6 +152,12 @@ export default function Dashboard() {
           </Card>
         </div>
       </main>
+
+      <InvestmentDialog 
+        open={investDialogOpen} 
+        onOpenChange={setInvestDialogOpen}
+        onSuccess={handleInvestmentSuccess}
+      />
     </div>
   );
 }
