@@ -1,1 +1,4 @@
 project_id = "mocixgnbnuotmdbvikdh"
+
+[functions.calculate-earnings]
+verify_jwt = false
