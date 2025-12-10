@@ -8,6 +8,8 @@ import { Wallet, TrendingUp, Users, Clock, Copy, ArrowUpRight } from "lucide-rea
 import { useToast } from "@/hooks/use-toast";
 import { InvestmentDialog } from "@/components/dashboard/InvestmentDialog";
 import { ActiveInvestments } from "@/components/dashboard/ActiveInvestments";
+import { WithdrawalDialog } from "@/components/dashboard/WithdrawalDialog";
+import { WithdrawalHistory } from "@/components/dashboard/WithdrawalHistory";
 import { useQueryClient } from "@tanstack/react-query";
 
 export default function Dashboard() {
@@ -16,6 +18,7 @@ export default function Dashboard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [investDialogOpen, setInvestDialogOpen] = useState(false);
+  const [withdrawDialogOpen, setWithdrawDialogOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -31,6 +34,11 @@ export default function Dashboard() {
 
   const handleInvestmentSuccess = () => {
     queryClient.invalidateQueries({ queryKey: ["user-investments"] });
+  };
+
+  const handleWithdrawalSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: ["user-withdrawals"] });
+    queryClient.invalidateQueries({ queryKey: ["profile"] });
   };
 
   if (loading || !profile) {
@@ -101,6 +109,11 @@ export default function Dashboard() {
           <ActiveInvestments />
         </div>
 
+        {/* Withdrawal History */}
+        <div className="mb-8 animate-fade-in" style={{ animationDelay: "0.55s" }}>
+          <WithdrawalHistory />
+        </div>
+
         {/* Referral Section */}
         <Card className="glass-card mb-8 animate-fade-in" style={{ animationDelay: "0.6s" }}>
           <CardHeader>
@@ -147,7 +160,9 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground mb-4">Withdraw your earnings to your crypto wallet.</p>
-              <Button variant="outline">Request Withdrawal</Button>
+              <Button variant="outline" onClick={() => setWithdrawDialogOpen(true)}>
+                Request Withdrawal
+              </Button>
             </CardContent>
           </Card>
         </div>
@@ -157,6 +172,12 @@ export default function Dashboard() {
         open={investDialogOpen} 
         onOpenChange={setInvestDialogOpen}
         onSuccess={handleInvestmentSuccess}
+      />
+
+      <WithdrawalDialog
+        open={withdrawDialogOpen}
+        onOpenChange={setWithdrawDialogOpen}
+        onSuccess={handleWithdrawalSuccess}
       />
     </div>
   );
