@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, Save, Settings } from "lucide-react";
+import { Loader2, Save, Settings, Play, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -13,6 +13,34 @@ export function AdminSettings() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isSaving, setIsSaving] = useState(false);
+  const [isTesting, setIsTesting] = useState(false);
+
+  const handleTestEarnings = async () => {
+    setIsTesting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("calculate-earnings");
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Earnings Calculated",
+        description: `Processed ${data?.processedInvestments || 0} investments, distributed $${data?.totalEarningsDistributed?.toFixed(2) || "0.00"} in earnings.`,
+      });
+      
+      // Refresh data
+      queryClient.invalidateQueries({ queryKey: ["investments"] });
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to calculate earnings",
+        variant: "destructive",
+      });
+    } finally {
+      setIsTesting(false);
+    }
+  };
 
   const { data: settings, isLoading } = useQuery({
     queryKey: ["admin-settings"],
@@ -176,6 +204,45 @@ export function AdminSettings() {
               </>
             )}
           </Button>
+        </CardContent>
+      </Card>
+
+      <Card className="glass-card">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Zap className="h-5 w-5 text-primary" />
+            Testing Tools
+          </CardTitle>
+          <CardDescription>
+            Manually trigger system processes for testing purposes
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label>Test Earnings Calculation</Label>
+              <p className="text-sm text-muted-foreground">
+                Manually trigger bi-weekly earnings calculation for all eligible investments
+              </p>
+            </div>
+            <Button 
+              onClick={handleTestEarnings} 
+              disabled={isTesting}
+              variant="outline"
+            >
+              {isTesting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <Play className="h-4 w-4 mr-2" />
+                  Test Earnings
+                </>
+              )}
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>
