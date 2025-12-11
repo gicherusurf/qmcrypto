@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, Save, Settings, Play, Zap } from "lucide-react";
+import { Loader2, Save, Settings, Play, Zap, Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -27,7 +27,6 @@ export function AdminSettings() {
         description: `Processed ${data?.processedInvestments || 0} investments, distributed $${data?.totalEarningsDistributed?.toFixed(2) || "0.00"} in earnings.`,
       });
       
-      // Refresh data
       queryClient.invalidateQueries({ queryKey: ["investments"] });
       queryClient.invalidateQueries({ queryKey: ["profile"] });
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
@@ -51,7 +50,6 @@ export function AdminSettings() {
       
       if (error) throw error;
       
-      // Convert to key-value object
       return data?.reduce((acc, s) => {
         acc[s.key] = s.value;
         return acc;
@@ -60,13 +58,32 @@ export function AdminSettings() {
   });
 
   const [formData, setFormData] = useState({
-    platform_name: settings?.platform_name || "CryptoGains",
-    return_percentage: settings?.return_percentage || "10",
-    return_period_days: settings?.return_period_days || "14",
-    min_withdrawal: settings?.min_withdrawal || "10",
-    withdrawals_enabled: settings?.withdrawals_enabled !== "false",
-    new_investments_enabled: settings?.new_investments_enabled !== "false",
+    platform_name: "",
+    return_percentage: "10",
+    return_period_days: "14",
+    min_withdrawal: "10",
+    withdrawals_enabled: true,
+    new_investments_enabled: true,
+    USDT_WALLET_TRC20: "",
+    USDT_WALLET_ERC20: "",
+    BTC_WALLET: "",
   });
+
+  useEffect(() => {
+    if (settings) {
+      setFormData({
+        platform_name: settings.platform_name || "CryptoGains",
+        return_percentage: settings.return_percentage || "10",
+        return_period_days: settings.return_period_days || "14",
+        min_withdrawal: settings.min_withdrawal || "10",
+        withdrawals_enabled: settings.withdrawals_enabled !== "false",
+        new_investments_enabled: settings.new_investments_enabled !== "false",
+        USDT_WALLET_TRC20: settings.USDT_WALLET_TRC20 || "",
+        USDT_WALLET_ERC20: settings.USDT_WALLET_ERC20 || "",
+        BTC_WALLET: settings.BTC_WALLET || "",
+      });
+    }
+  }, [settings]);
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -92,6 +109,7 @@ export function AdminSettings() {
       });
 
       queryClient.invalidateQueries({ queryKey: ["admin-settings"] });
+      queryClient.invalidateQueries({ queryKey: ["wallet-addresses"] });
     } catch (error: any) {
       toast({
         title: "Error",
@@ -113,6 +131,51 @@ export function AdminSettings() {
 
   return (
     <div className="space-y-6">
+      {/* Wallet Addresses */}
+      <Card className="glass-card">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Wallet className="h-5 w-5 text-primary" />
+            Payment Wallet Addresses
+          </CardTitle>
+          <CardDescription>
+            Configure wallet addresses where users will send payments
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="USDT_WALLET_TRC20">USDT Wallet (TRC20 - Tron)</Label>
+            <Input
+              id="USDT_WALLET_TRC20"
+              placeholder="Enter USDT TRC20 wallet address"
+              value={formData.USDT_WALLET_TRC20}
+              onChange={(e) => setFormData(prev => ({ ...prev, USDT_WALLET_TRC20: e.target.value }))}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="USDT_WALLET_ERC20">USDT Wallet (ERC20 - Ethereum)</Label>
+            <Input
+              id="USDT_WALLET_ERC20"
+              placeholder="Enter USDT ERC20 wallet address"
+              value={formData.USDT_WALLET_ERC20}
+              onChange={(e) => setFormData(prev => ({ ...prev, USDT_WALLET_ERC20: e.target.value }))}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="BTC_WALLET">Bitcoin Wallet</Label>
+            <Input
+              id="BTC_WALLET"
+              placeholder="Enter Bitcoin wallet address"
+              value={formData.BTC_WALLET}
+              onChange={(e) => setFormData(prev => ({ ...prev, BTC_WALLET: e.target.value }))}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Platform Settings */}
       <Card className="glass-card">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -200,13 +263,14 @@ export function AdminSettings() {
             ) : (
               <>
                 <Save className="h-4 w-4 mr-2" />
-                Save Settings
+                Save All Settings
               </>
             )}
           </Button>
         </CardContent>
       </Card>
 
+      {/* Testing Tools */}
       <Card className="glass-card">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

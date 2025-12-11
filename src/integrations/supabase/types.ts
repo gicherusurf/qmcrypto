@@ -100,6 +100,9 @@ export type Database = {
           last_earning_at: string | null
           next_earning_at: string | null
           package_id: string
+          payment_tx_hash: string | null
+          payment_verified_at: string | null
+          payment_verified_by: string | null
           status: string | null
           user_id: string
         }
@@ -110,6 +113,9 @@ export type Database = {
           last_earning_at?: string | null
           next_earning_at?: string | null
           package_id: string
+          payment_tx_hash?: string | null
+          payment_verified_at?: string | null
+          payment_verified_by?: string | null
           status?: string | null
           user_id: string
         }
@@ -120,6 +126,9 @@ export type Database = {
           last_earning_at?: string | null
           next_earning_at?: string | null
           package_id?: string
+          payment_tx_hash?: string | null
+          payment_verified_at?: string | null
+          payment_verified_by?: string | null
           status?: string | null
           user_id?: string
         }
