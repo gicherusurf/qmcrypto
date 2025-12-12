@@ -45,26 +45,26 @@ export default function Admin() {
         </div>
 
         <Tabs defaultValue="pending" className="space-y-6">
-          <TabsList className="bg-secondary/50 border border-border">
-            <TabsTrigger value="pending" className="flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              Pending
+          <TabsList className="bg-secondary/50 border border-border flex-wrap h-auto gap-1 p-1">
+            <TabsTrigger value="pending" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
+              <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden xs:inline">Pending</span>
             </TabsTrigger>
-            <TabsTrigger value="users" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Users
+            <TabsTrigger value="users" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
+              <Users className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden xs:inline">Users</span>
             </TabsTrigger>
-            <TabsTrigger value="withdrawals" className="flex items-center gap-2">
-              <ArrowUpRight className="h-4 w-4" />
-              Withdrawals
+            <TabsTrigger value="withdrawals" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
+              <ArrowUpRight className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden xs:inline">Withdrawals</span>
             </TabsTrigger>
-            <TabsTrigger value="referrals" className="flex items-center gap-2">
-              <GitBranch className="h-4 w-4" />
-              Referral Tree
+            <TabsTrigger value="referrals" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
+              <GitBranch className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden xs:inline">Referrals</span>
             </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center gap-2">
-              <Settings className="h-4 w-4" />
-              Settings
+            <TabsTrigger value="settings" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
+              <Settings className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden xs:inline">Settings</span>
             </TabsTrigger>
           </TabsList>
 

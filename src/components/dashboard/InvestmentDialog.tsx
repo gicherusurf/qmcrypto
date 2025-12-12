@@ -255,9 +255,9 @@ export function InvestmentDialog({ open, onOpenChange, onSuccess }: InvestmentDi
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-2xl bg-card border-border">
+      <DialogContent className="sm:max-w-2xl bg-card border-border max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="font-display text-2xl">
+          <DialogTitle className="font-display text-xl sm:text-2xl">
             {step === 1 && "Select Investment Package"}
             {step === 2 && "Make Payment"}
             {step === 3 && "Confirm Transaction"}
