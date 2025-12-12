@@ -11,6 +11,7 @@ import { ActiveInvestments } from "@/components/dashboard/ActiveInvestments";
 import { WithdrawalDialog } from "@/components/dashboard/WithdrawalDialog";
 import { WithdrawalHistory } from "@/components/dashboard/WithdrawalHistory";
 import { useQueryClient } from "@tanstack/react-query";
+import { useRealtimeProfile } from "@/hooks/use-realtime-profile";
 
 export default function Dashboard() {
   const { user, profile, loading } = useAuth();
@@ -19,6 +20,9 @@ export default function Dashboard() {
   const queryClient = useQueryClient();
   const [investDialogOpen, setInvestDialogOpen] = useState(false);
   const [withdrawDialogOpen, setWithdrawDialogOpen] = useState(false);
+
+  // Enable realtime updates
+  useRealtimeProfile();
 
   useEffect(() => {
     if (!loading && !user) {
