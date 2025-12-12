@@ -96,6 +96,9 @@ export type Database = {
         Row: {
           amount: number
           created_at: string | null
+          crypto_amount: number | null
+          crypto_currency: string | null
+          crypto_price_usd: number | null
           id: string
           last_earning_at: string | null
           next_earning_at: string | null
@@ -109,6 +112,9 @@ export type Database = {
         Insert: {
           amount: number
           created_at?: string | null
+          crypto_amount?: number | null
+          crypto_currency?: string | null
+          crypto_price_usd?: number | null
           id?: string
           last_earning_at?: string | null
           next_earning_at?: string | null
@@ -122,6 +128,9 @@ export type Database = {
         Update: {
           amount?: number
           created_at?: string | null
+          crypto_amount?: number | null
+          crypto_currency?: string | null
+          crypto_price_usd?: number | null
           id?: string
           last_earning_at?: string | null
           next_earning_at?: string | null

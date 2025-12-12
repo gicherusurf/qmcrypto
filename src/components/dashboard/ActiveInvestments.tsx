@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, Clock, Loader2 } from "lucide-react";
+import { TrendingUp, Clock, Loader2, Bitcoin, Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
@@ -94,6 +94,26 @@ export function ActiveInvestments() {
                   <div className="text-sm text-muted-foreground">
                     {investment.investment_packages?.name} • {investment.investment_packages?.return_percentage}% returns
                   </div>
+                  {/* Crypto Payment Info */}
+                  {investment.crypto_amount && investment.crypto_currency && (
+                    <div className="flex items-center gap-2 mt-2 text-sm">
+                      {investment.crypto_currency === "BTC" ? (
+                        <Bitcoin className="h-4 w-4 text-orange-500" />
+                      ) : (
+                        <Wallet className="h-4 w-4 text-green-500" />
+                      )}
+                      <span className="font-medium">
+                        {investment.crypto_currency === "BTC" 
+                          ? Number(investment.crypto_amount).toFixed(8) 
+                          : Number(investment.crypto_amount).toFixed(2)} {investment.crypto_currency}
+                      </span>
+                      {investment.crypto_price_usd && (
+                        <span className="text-xs text-muted-foreground">
+                          @ ${Number(investment.crypto_price_usd).toLocaleString()}
+                        </span>
+                      )}
+                    </div>
+                  )}
                   {investment.payment_tx_hash && (
                     <div className="text-xs text-muted-foreground mt-1">
                       TX: <code className="bg-secondary px-1 rounded">{investment.payment_tx_hash.slice(0, 20)}...</code>

@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Check, X, Loader2, ExternalLink, Clock } from "lucide-react";
+import { Check, X, Loader2, ExternalLink, Clock, Bitcoin, Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -135,7 +135,8 @@ export function AdminPendingInvestments() {
                 <TableRow>
                   <TableHead>User</TableHead>
                   <TableHead>Package</TableHead>
-                  <TableHead>Amount</TableHead>
+                  <TableHead>Amount (USD)</TableHead>
+                  <TableHead>Crypto Payment</TableHead>
                   <TableHead>TX Hash</TableHead>
                   <TableHead>Submitted</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -156,6 +157,25 @@ export function AdminPendingInvestments() {
                       </TableCell>
                       <TableCell>{packageData?.name || "Unknown"}</TableCell>
                       <TableCell className="font-semibold">${investment.amount.toFixed(2)}</TableCell>
+                      <TableCell>
+                        {investment.crypto_amount && investment.crypto_currency ? (
+                          <div className="flex items-center gap-1">
+                            {investment.crypto_currency === "BTC" ? (
+                              <Bitcoin className="h-4 w-4 text-orange-500" />
+                            ) : (
+                              <Wallet className="h-4 w-4 text-green-500" />
+                            )}
+                            <span className="font-medium">
+                              {investment.crypto_currency === "BTC" 
+                                ? Number(investment.crypto_amount).toFixed(8) 
+                                : Number(investment.crypto_amount).toFixed(2)}
+                            </span>
+                            <span className="text-xs text-muted-foreground">{investment.crypto_currency}</span>
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">N/A</span>
+                        )}
+                      </TableCell>
                       <TableCell>
                         <code className="text-xs bg-secondary px-2 py-1 rounded max-w-[150px] truncate block">
                           {investment.payment_tx_hash || "N/A"}

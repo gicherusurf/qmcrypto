@@ -143,6 +143,8 @@ export function InvestmentDialog({ open, onOpenChange, onSuccess }: InvestmentDi
     setIsSubmitting(true);
 
     try {
+      const cryptoInfo = getCryptoAmount();
+      
       const { error } = await supabase
         .from("investments")
         .insert({
@@ -151,7 +153,10 @@ export function InvestmentDialog({ open, onOpenChange, onSuccess }: InvestmentDi
           amount: amount,
           payment_tx_hash: txHash.trim(),
           status: "pending",
-          next_earning_at: null, // Will be set when admin verifies
+          next_earning_at: null,
+          crypto_amount: cryptoInfo?.amount || null,
+          crypto_currency: cryptoInfo?.symbol || paymentMethods.find(m => m.id === paymentMethod)?.crypto || null,
+          crypto_price_usd: cryptoInfo?.price || null,
         });
 
       if (error) throw error;
