@@ -3,12 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { Navbar } from "@/components/layout/Navbar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, ArrowUpRight, GitBranch, Settings, Clock } from "lucide-react";
+import { Users, ArrowUpRight, GitBranch, Settings, Clock, DollarSign } from "lucide-react";
 import { AdminUsers } from "@/components/admin/AdminUsers";
 import { AdminWithdrawals } from "@/components/admin/AdminWithdrawals";
 import { AdminReferralTree } from "@/components/admin/AdminReferralTree";
 import { AdminSettings } from "@/components/admin/AdminSettings";
 import { AdminPendingInvestments } from "@/components/admin/AdminPendingInvestments";
+import { AdminAllDeposits } from "@/components/admin/AdminAllDeposits";
 
 export default function Admin() {
   const { user, isAdmin, loading } = useAuth();
@@ -50,6 +51,10 @@ export default function Admin() {
               <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
               <span className="hidden xs:inline">Pending</span>
             </TabsTrigger>
+            <TabsTrigger value="deposits" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
+              <DollarSign className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden xs:inline">Deposits</span>
+            </TabsTrigger>
             <TabsTrigger value="users" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
               <Users className="h-3 w-3 sm:h-4 sm:w-4" />
               <span className="hidden xs:inline">Users</span>
@@ -70,6 +75,10 @@ export default function Admin() {
 
           <TabsContent value="pending" className="animate-fade-in">
             <AdminPendingInvestments />
+          </TabsContent>
+
+          <TabsContent value="deposits" className="animate-fade-in">
+            <AdminAllDeposits />
           </TabsContent>
 
           <TabsContent value="users" className="animate-fade-in">
