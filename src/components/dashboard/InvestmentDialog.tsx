@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
+import { QRCodeSVG } from "qrcode.react";
 
 interface InvestmentDialogProps {
   open: boolean;
@@ -393,6 +394,22 @@ export function InvestmentDialog({ open, onOpenChange, onSuccess }: InvestmentDi
                         </div>
                       )}
                     </div>
+
+                    {/* QR Code */}
+                    {getWalletAddress() && (
+                      <div className="flex flex-col items-center gap-3 p-4 bg-white rounded-lg">
+                        <QRCodeSVG
+                          value={getWalletAddress()}
+                          size={160}
+                          level="H"
+                          includeMargin
+                          className="rounded"
+                        />
+                        <span className="text-xs text-gray-600 font-medium">
+                          Scan with your wallet app
+                        </span>
+                      </div>
+                    )}
 
                     <Label>Send to this address</Label>
                     <div className="flex items-center gap-2 p-3 bg-secondary rounded-lg border border-border">
