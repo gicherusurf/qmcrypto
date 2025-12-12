@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Check, X, Loader2, ExternalLink, Clock, Bitcoin, Wallet } from "lucide-react";
+import { Check, X, Loader2, ExternalLink, Clock, Bitcoin, Wallet, ImageIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -138,6 +138,7 @@ export function AdminPendingInvestments() {
                   <TableHead>Amount (USD)</TableHead>
                   <TableHead>Crypto Payment</TableHead>
                   <TableHead>TX Hash</TableHead>
+                  <TableHead>Proof</TableHead>
                   <TableHead>Submitted</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -190,6 +191,27 @@ export function AdminPendingInvestments() {
                             <ExternalLink className="h-3 w-3" />
                             View on Explorer
                           </a>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {investment.payment_proof_url ? (
+                          <a
+                            href={investment.payment_proof_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-block"
+                          >
+                            <img
+                              src={investment.payment_proof_url}
+                              alt="Payment proof"
+                              className="w-12 h-12 object-cover rounded border border-border hover:scale-150 transition-transform cursor-zoom-in"
+                            />
+                          </a>
+                        ) : (
+                          <span className="text-muted-foreground text-sm flex items-center gap-1">
+                            <ImageIcon className="h-4 w-4" />
+                            None
+                          </span>
                         )}
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">

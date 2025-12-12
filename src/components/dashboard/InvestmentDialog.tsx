@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Check, Sparkles, Crown, Loader2, Copy, ArrowLeft, Wallet, Bitcoin, RefreshCw } from "lucide-react";
+import { Check, Sparkles, Crown, Loader2, Copy, ArrowLeft, Wallet, Bitcoin, RefreshCw, Upload, X, ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -40,6 +40,9 @@ export function InvestmentDialog({ open, onOpenChange, onSuccess }: InvestmentDi
   const [customAmount, setCustomAmount] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
   const [txHash, setTxHash] = useState("");
+  const [proofFile, setProofFile] = useState<File | null>(null);
+  const [proofPreview, setProofPreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { data: packages, isLoading } = useQuery({
@@ -126,6 +129,40 @@ export function InvestmentDialog({ open, onOpenChange, onSuccess }: InvestmentDi
     toast({ title: "Copied!", description: "Wallet address copied to clipboard" });
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    if (!file.type.startsWith("image/")) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload an image file (JPG, PNG, etc.)",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please upload an image smaller than 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setProofFile(file);
+    setProofPreview(URL.createObjectURL(file));
+  };
+
+  const removeProofFile = () => {
+    setProofFile(null);
+    if (proofPreview) {
+      URL.revokeObjectURL(proofPreview);
+      setProofPreview(null);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!profile || !selectedPackage || !txHash.trim() || !paymentMethod) return;
 
@@ -141,8 +178,30 @@ export function InvestmentDialog({ open, onOpenChange, onSuccess }: InvestmentDi
     }
 
     setIsSubmitting(true);
+    setIsUploading(!!proofFile);
 
     try {
+      let proofUrl: string | null = null;
+      
+      // Upload proof image if provided
+      if (proofFile) {
+        const fileExt = proofFile.name.split('.').pop();
+        const fileName = `${profile.user_id}/${Date.now()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('payment-proofs')
+          .upload(fileName, proofFile);
+        
+        if (uploadError) throw uploadError;
+        
+        const { data: urlData } = supabase.storage
+          .from('payment-proofs')
+          .getPublicUrl(fileName);
+        
+        proofUrl = urlData.publicUrl;
+        setIsUploading(false);
+      }
+
       const cryptoInfo = getCryptoAmount();
       
       const { error } = await supabase
@@ -157,6 +216,7 @@ export function InvestmentDialog({ open, onOpenChange, onSuccess }: InvestmentDi
           crypto_amount: cryptoInfo?.amount || null,
           crypto_currency: cryptoInfo?.symbol || paymentMethods.find(m => m.id === paymentMethod)?.crypto || null,
           crypto_price_usd: cryptoInfo?.price || null,
+          payment_proof_url: proofUrl,
         });
 
       if (error) throw error;
@@ -186,6 +246,7 @@ export function InvestmentDialog({ open, onOpenChange, onSuccess }: InvestmentDi
     setCustomAmount("");
     setPaymentMethod(null);
     setTxHash("");
+    removeProofFile();
   };
 
   const canProceedStep1 = selectedPackage && (!isCustomPackage || getInvestmentAmount() >= (selectedPkg?.min_amount || 150));
@@ -485,6 +546,44 @@ export function InvestmentDialog({ open, onOpenChange, onSuccess }: InvestmentDi
                   </p>
                 </div>
 
+                {/* Proof of Payment Upload */}
+                <div className="space-y-2">
+                  <Label>Proof of Payment (Optional)</Label>
+                  {proofPreview ? (
+                    <div className="relative">
+                      <img
+                        src={proofPreview}
+                        alt="Payment proof"
+                        className="w-full max-h-48 object-contain rounded-lg border border-border"
+                      />
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        className="absolute top-2 right-2 h-6 w-6"
+                        onClick={removeProofFile}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary/50 transition-colors bg-secondary/30">
+                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                        <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                        <p className="text-sm text-muted-foreground">
+                          <span className="font-semibold">Click to upload</span> screenshot
+                        </p>
+                        <p className="text-xs text-muted-foreground">PNG, JPG up to 5MB</p>
+                      </div>
+                      <input
+                        type="file"
+                        className="hidden"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                      />
+                    </label>
+                  )}
+                </div>
+
                 <Button
                   onClick={handleSubmit}
                   disabled={!canSubmit || isSubmitting}
@@ -494,7 +593,7 @@ export function InvestmentDialog({ open, onOpenChange, onSuccess }: InvestmentDi
                   {isSubmitting ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Submitting...
+                      {isUploading ? "Uploading..." : "Submitting..."}
                     </>
                   ) : (
                     "Submit Investment"
