@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Check, Sparkles, Crown, Loader2, Copy, ArrowLeft, Wallet, Bitcoin } from "lucide-react";
+import { Check, Sparkles, Crown, Loader2, Copy, ArrowLeft, Wallet, Bitcoin, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -18,10 +18,17 @@ interface InvestmentDialogProps {
 
 type PaymentMethod = "USDT_TRC20" | "USDT_ERC20" | "BTC";
 
-const paymentMethods: { id: PaymentMethod; name: string; icon: React.ReactNode; network: string }[] = [
-  { id: "USDT_TRC20", name: "USDT (TRC20)", icon: <Wallet className="h-5 w-5" />, network: "Tron Network" },
-  { id: "USDT_ERC20", name: "USDT (ERC20)", icon: <Wallet className="h-5 w-5" />, network: "Ethereum Network" },
-  { id: "BTC", name: "Bitcoin", icon: <Bitcoin className="h-5 w-5" />, network: "Bitcoin Network" },
+interface CryptoPrices {
+  BTC: number;
+  USDT: number;
+  timestamp: string;
+  error?: string;
+}
+
+const paymentMethods: { id: PaymentMethod; name: string; icon: React.ReactNode; network: string; crypto: "BTC" | "USDT" }[] = [
+  { id: "USDT_TRC20", name: "USDT (TRC20)", icon: <Wallet className="h-5 w-5" />, network: "Tron Network", crypto: "USDT" },
+  { id: "USDT_ERC20", name: "USDT (ERC20)", icon: <Wallet className="h-5 w-5" />, network: "Ethereum Network", crypto: "USDT" },
+  { id: "BTC", name: "Bitcoin", icon: <Bitcoin className="h-5 w-5" />, network: "Bitcoin Network", crypto: "BTC" },
 ];
 
 export function InvestmentDialog({ open, onOpenChange, onSuccess }: InvestmentDialogProps) {
@@ -64,6 +71,17 @@ export function InvestmentDialog({ open, onOpenChange, onSuccess }: InvestmentDi
     },
   });
 
+  const { data: cryptoPrices, isLoading: isPricesLoading, refetch: refetchPrices } = useQuery({
+    queryKey: ["crypto-prices"],
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke<CryptoPrices>("get-crypto-prices");
+      if (error) throw error;
+      return data;
+    },
+    refetchInterval: 60000, // Refresh every 60 seconds
+    staleTime: 30000,
+  });
+
   const selectedPkg = packages?.find(p => p.id === selectedPackage);
   const isCustomPackage = selectedPkg?.is_custom;
 
@@ -83,6 +101,23 @@ export function InvestmentDialog({ open, onOpenChange, onSuccess }: InvestmentDi
       BTC: "BTC_WALLET",
     };
     return walletAddresses[keyMap[paymentMethod]] || "";
+  };
+
+  const getCryptoAmount = () => {
+    if (!paymentMethod || !cryptoPrices) return null;
+    const method = paymentMethods.find(m => m.id === paymentMethod);
+    if (!method) return null;
+    
+    const usdAmount = getInvestmentAmount();
+    const price = method.crypto === "BTC" ? cryptoPrices.BTC : cryptoPrices.USDT;
+    
+    if (!price || price === 0) return null;
+    
+    return {
+      amount: usdAmount / price,
+      symbol: method.crypto,
+      price: price,
+    };
   };
 
   const copyToClipboard = (text: string) => {
@@ -307,6 +342,58 @@ export function InvestmentDialog({ open, onOpenChange, onSuccess }: InvestmentDi
 
                 {paymentMethod && (
                   <div className="animate-fade-in space-y-3">
+                    {/* Crypto Amount Display */}
+                    <div className="bg-primary/10 border border-primary/30 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm text-muted-foreground">Exact Amount to Send</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => refetchPrices()}
+                          disabled={isPricesLoading}
+                          className="h-6 px-2"
+                        >
+                          <RefreshCw className={cn("h-3 w-3", isPricesLoading && "animate-spin")} />
+                        </Button>
+                      </div>
+                      {isPricesLoading ? (
+                        <div className="flex items-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span className="text-sm">Fetching live price...</span>
+                        </div>
+                      ) : getCryptoAmount() ? (
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <span className="font-display text-2xl font-bold text-primary">
+                              {getCryptoAmount()!.symbol === "BTC" 
+                                ? getCryptoAmount()!.amount.toFixed(8) 
+                                : getCryptoAmount()!.amount.toFixed(2)}
+                            </span>
+                            <span className="text-lg font-semibold">{getCryptoAmount()!.symbol}</span>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6"
+                              onClick={() => copyToClipboard(
+                                getCryptoAmount()!.symbol === "BTC" 
+                                  ? getCryptoAmount()!.amount.toFixed(8) 
+                                  : getCryptoAmount()!.amount.toFixed(2)
+                              )}
+                            >
+                              <Copy className="h-3 w-3" />
+                            </Button>
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            1 {getCryptoAmount()!.symbol} = ${getCryptoAmount()!.price.toLocaleString()} USD
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-sm text-warning">
+                          Unable to fetch price. Send ${getInvestmentAmount().toFixed(2)} worth.
+                        </div>
+                      )}
+                    </div>
+
                     <Label>Send to this address</Label>
                     <div className="flex items-center gap-2 p-3 bg-secondary rounded-lg border border-border">
                       <code className="flex-1 text-sm break-all">{getWalletAddress()}</code>
@@ -319,8 +406,7 @@ export function InvestmentDialog({ open, onOpenChange, onSuccess }: InvestmentDi
                       </Button>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      ⚠️ Send exactly ${getInvestmentAmount().toFixed(2)} worth of {paymentMethods.find(m => m.id === paymentMethod)?.name}. 
-                      Sending wrong amount may result in loss of funds.
+                      ⚠️ Send the exact crypto amount shown above to avoid payment issues.
                     </p>
                   </div>
                 )}
