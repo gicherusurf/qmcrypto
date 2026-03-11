@@ -101,6 +101,10 @@ export default function Admin() {
           <TabsContent value="settings" className="animate-fade-in">
             <AdminSettings />
           </TabsContent>
+
+          <TabsContent value="tokens" className="animate-fade-in">
+            <AdminTokenTransactions />
+          </TabsContent>
         </Tabs>
       </main>
     </div>
