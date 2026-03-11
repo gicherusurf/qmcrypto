@@ -72,6 +72,10 @@ export default function Admin() {
               <Settings className="h-3 w-3 sm:h-4 sm:w-4" />
               <span className="hidden xs:inline">Settings</span>
             </TabsTrigger>
+            <TabsTrigger value="tokens" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
+              <Coins className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden xs:inline">Tokens</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="pending" className="animate-fade-in">
