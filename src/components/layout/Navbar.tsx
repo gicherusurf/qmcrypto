@@ -87,6 +87,12 @@ export function Navbar() {
                       Dashboard
                     </Button>
                   </Link>
+                  <Link to="/marketplace" onClick={() => setMobileMenuOpen(false)}>
+                    <Button variant="ghost" className="w-full justify-start">
+                      <Coins className="h-4 w-4 mr-2" />
+                      Marketplace
+                    </Button>
+                  </Link>
                   {isAdmin && (
                     <Link to="/admin" onClick={() => setMobileMenuOpen(false)}>
                       <Button variant="ghost" className="w-full justify-start">
