@@ -12,6 +12,7 @@ interface Profile {
   total_balance: number;
   total_earnings: number;
   total_withdrawn: number;
+  token_balance: number;
   created_at: string;
   updated_at: string;
 }
