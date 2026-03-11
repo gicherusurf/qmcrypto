@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { Navbar } from "@/components/layout/Navbar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, ArrowUpRight, GitBranch, Settings, Clock, DollarSign } from "lucide-react";
+import { Users, ArrowUpRight, GitBranch, Settings, Clock, DollarSign, Coins } from "lucide-react";
 import { AdminUsers } from "@/components/admin/AdminUsers";
 import { AdminWithdrawals } from "@/components/admin/AdminWithdrawals";
 import { AdminReferralTree } from "@/components/admin/AdminReferralTree";
