@@ -10,6 +10,7 @@ import { AdminReferralTree } from "@/components/admin/AdminReferralTree";
 import { AdminSettings } from "@/components/admin/AdminSettings";
 import { AdminPendingInvestments } from "@/components/admin/AdminPendingInvestments";
 import { AdminAllDeposits } from "@/components/admin/AdminAllDeposits";
+import { AdminTokenTransactions } from "@/components/admin/AdminTokenTransactions";
 
 export default function Admin() {
   const { user, isAdmin, loading } = useAuth();
