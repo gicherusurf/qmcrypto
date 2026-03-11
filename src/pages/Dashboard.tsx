@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { Navbar } from "@/components/layout/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Wallet, TrendingUp, Users, Clock, Copy, ArrowUpRight } from "lucide-react";
+import { Wallet, TrendingUp, Users, Clock, Copy, ArrowUpRight, Coins } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { InvestmentDialog } from "@/components/dashboard/InvestmentDialog";
 import { ActiveInvestments } from "@/components/dashboard/ActiveInvestments";
