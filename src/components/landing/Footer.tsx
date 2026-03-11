@@ -19,14 +19,7 @@ export function Footer() {
           </nav>
 
           <p className="text-sm text-muted-foreground">
-            © 2024 CryptoVest. Simulation Platform.
-          </p>
-        </div>
-
-        <div className="mt-8 pt-8 border-t border-border/30 text-center">
-          <p className="text-xs text-muted-foreground max-w-2xl mx-auto">
-            <strong>Disclaimer:</strong> This is a simulation platform for educational purposes only. 
-            No real money or cryptocurrency is involved. All investments and returns are simulated.
+            © 2024 CryptoVest. All rights reserved.
           </p>
         </div>
       </div>
