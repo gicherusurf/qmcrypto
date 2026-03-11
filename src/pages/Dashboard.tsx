@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { Navbar } from "@/components/layout/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Wallet, TrendingUp, Users, Clock, Copy, ArrowUpRight } from "lucide-react";
+import { Wallet, TrendingUp, Users, Clock, Copy, ArrowUpRight, Coins } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { InvestmentDialog } from "@/components/dashboard/InvestmentDialog";
 import { ActiveInvestments } from "@/components/dashboard/ActiveInvestments";
@@ -99,11 +99,11 @@ export default function Dashboard() {
 
           <Card className="glass-card animate-fade-in" style={{ animationDelay: "0.4s" }}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Next Earning</CardTitle>
-              <Clock className="h-4 w-4 text-primary" />
+              <CardTitle className="text-sm font-medium text-muted-foreground">QM Tokens</CardTitle>
+              <Coins className="h-4 w-4 text-accent" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-display font-bold">14 days</div>
+              <div className="text-2xl font-display font-bold text-accent">{Number(profile.token_balance || 0).toFixed(2)} <span className="text-sm">QMT</span></div>
             </CardContent>
           </Card>
         </div>

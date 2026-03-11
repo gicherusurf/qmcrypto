@@ -169,6 +169,7 @@ export type Database = {
           id: string
           referral_code: string
           referred_by: string | null
+          token_balance: number | null
           total_balance: number | null
           total_earnings: number | null
           total_withdrawn: number | null
@@ -182,6 +183,7 @@ export type Database = {
           id?: string
           referral_code: string
           referred_by?: string | null
+          token_balance?: number | null
           total_balance?: number | null
           total_earnings?: number | null
           total_withdrawn?: number | null
@@ -195,6 +197,7 @@ export type Database = {
           id?: string
           referral_code?: string
           referred_by?: string | null
+          token_balance?: number | null
           total_balance?: number | null
           total_earnings?: number | null
           total_withdrawn?: number | null
@@ -269,6 +272,111 @@ export type Database = {
           value?: string | null
         }
         Relationships: []
+      }
+      token_listings: {
+        Row: {
+          amount: number
+          created_at: string | null
+          id: string
+          price_per_token: number
+          remaining_amount: number
+          seller_id: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          id?: string
+          price_per_token?: number
+          remaining_amount: number
+          seller_id: string
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          id?: string
+          price_per_token?: number
+          remaining_amount?: number
+          seller_id?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "token_listings_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      token_transactions: {
+        Row: {
+          admin_notes: string | null
+          amount: number
+          buyer_id: string
+          created_at: string | null
+          id: string
+          listing_id: string | null
+          payment_proof_url: string | null
+          processed_at: string | null
+          seller_id: string
+          status: string
+          total_price: number
+        }
+        Insert: {
+          admin_notes?: string | null
+          amount: number
+          buyer_id: string
+          created_at?: string | null
+          id?: string
+          listing_id?: string | null
+          payment_proof_url?: string | null
+          processed_at?: string | null
+          seller_id: string
+          status?: string
+          total_price: number
+        }
+        Update: {
+          admin_notes?: string | null
+          amount?: number
+          buyer_id?: string
+          created_at?: string | null
+          id?: string
+          listing_id?: string | null
+          payment_proof_url?: string | null
+          processed_at?: string | null
+          seller_id?: string
+          status?: string
+          total_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "token_transactions_buyer_id_fkey"
+            columns: ["buyer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "token_transactions_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "token_listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "token_transactions_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {

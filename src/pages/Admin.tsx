@@ -3,13 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { Navbar } from "@/components/layout/Navbar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, ArrowUpRight, GitBranch, Settings, Clock, DollarSign } from "lucide-react";
+import { Users, ArrowUpRight, GitBranch, Settings, Clock, DollarSign, Coins } from "lucide-react";
 import { AdminUsers } from "@/components/admin/AdminUsers";
 import { AdminWithdrawals } from "@/components/admin/AdminWithdrawals";
 import { AdminReferralTree } from "@/components/admin/AdminReferralTree";
 import { AdminSettings } from "@/components/admin/AdminSettings";
 import { AdminPendingInvestments } from "@/components/admin/AdminPendingInvestments";
 import { AdminAllDeposits } from "@/components/admin/AdminAllDeposits";
+import { AdminTokenTransactions } from "@/components/admin/AdminTokenTransactions";
 
 export default function Admin() {
   const { user, isAdmin, loading } = useAuth();
@@ -71,6 +72,10 @@ export default function Admin() {
               <Settings className="h-3 w-3 sm:h-4 sm:w-4" />
               <span className="hidden xs:inline">Settings</span>
             </TabsTrigger>
+            <TabsTrigger value="tokens" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
+              <Coins className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden xs:inline">Tokens</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="pending" className="animate-fade-in">
@@ -95,6 +100,10 @@ export default function Admin() {
 
           <TabsContent value="settings" className="animate-fade-in">
             <AdminSettings />
+          </TabsContent>
+
+          <TabsContent value="tokens" className="animate-fade-in">
+            <AdminTokenTransactions />
           </TabsContent>
         </Tabs>
       </main>

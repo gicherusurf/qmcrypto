@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
-import { LogOut, User, Shield, Menu, X } from "lucide-react";
+import { LogOut, User, Shield, Menu, X, Coins } from "lucide-react";
 import { useState } from "react";
 
 export function Navbar() {
@@ -33,6 +33,12 @@ export function Navbar() {
                   <Button variant="ghost" size="sm">
                     <User className="h-4 w-4 mr-2" />
                     Dashboard
+                  </Button>
+                </Link>
+                <Link to="/marketplace">
+                  <Button variant="ghost" size="sm">
+                    <Coins className="h-4 w-4 mr-2" />
+                    Marketplace
                   </Button>
                 </Link>
                 {isAdmin && (
@@ -79,6 +85,12 @@ export function Navbar() {
                     <Button variant="ghost" className="w-full justify-start">
                       <User className="h-4 w-4 mr-2" />
                       Dashboard
+                    </Button>
+                  </Link>
+                  <Link to="/marketplace" onClick={() => setMobileMenuOpen(false)}>
+                    <Button variant="ghost" className="w-full justify-start">
+                      <Coins className="h-4 w-4 mr-2" />
+                      Marketplace
                     </Button>
                   </Link>
                   {isAdmin && (
