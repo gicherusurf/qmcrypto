@@ -3,312 +3,82 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Loader2, Save, Settings, Play, Zap, Wallet } from "lucide-react";
+import { Loader2, Save, Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 
+const FIELDS = [
+  { key: "btc_wallet", label: "Bitcoin Wallet Address" },
+  { key: "usdt_trc20_wallet", label: "USDT Wallet (TRC20)" },
+  { key: "usdt_erc20_wallet", label: "USDT Wallet (ERC20)" },
+];
+
 export function AdminSettings() {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const [isSaving, setIsSaving] = useState(false);
-  const [isTesting, setIsTesting] = useState(false);
-
-  const handleTestEarnings = async () => {
-    setIsTesting(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("calculate-earnings");
-      
-      if (error) throw error;
-      
-      toast({
-        title: "Earnings Calculated",
-        description: `Processed ${data?.processedInvestments || 0} investments, distributed $${data?.totalEarningsDistributed?.toFixed(2) || "0.00"} in earnings.`,
-      });
-      
-      queryClient.invalidateQueries({ queryKey: ["investments"] });
-      queryClient.invalidateQueries({ queryKey: ["profile"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to calculate earnings",
-        variant: "destructive",
-      });
-    } finally {
-      setIsTesting(false);
-    }
-  };
+  const qc = useQueryClient();
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState<Record<string, string>>({});
 
   const { data: settings, isLoading } = useQuery({
     queryKey: ["admin-settings"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("settings")
-        .select("*");
-      
+      const { data, error } = await supabase.from("settings").select("*");
       if (error) throw error;
-      
-      return data?.reduce((acc, s) => {
-        acc[s.key] = s.value;
-        return acc;
-      }, {} as Record<string, string | null>) || {};
+      const map: Record<string, string> = {};
+      data?.forEach((s) => { map[s.key] = s.value ?? ""; });
+      return map;
     },
-  });
-
-  const [formData, setFormData] = useState({
-    platform_name: "",
-    return_percentage: "10",
-    return_period_days: "14",
-    min_withdrawal: "10",
-    withdrawals_enabled: true,
-    new_investments_enabled: true,
-    USDT_WALLET_TRC20: "",
-    USDT_WALLET_ERC20: "",
-    BTC_WALLET: "",
   });
 
   useEffect(() => {
     if (settings) {
-      setFormData({
-        platform_name: settings.platform_name || "CryptoGains",
-        return_percentage: settings.return_percentage || "10",
-        return_period_days: settings.return_period_days || "14",
-        min_withdrawal: settings.min_withdrawal || "10",
-        withdrawals_enabled: settings.withdrawals_enabled !== "false",
-        new_investments_enabled: settings.new_investments_enabled !== "false",
-        USDT_WALLET_TRC20: settings.USDT_WALLET_TRC20 || "",
-        USDT_WALLET_ERC20: settings.USDT_WALLET_ERC20 || "",
-        BTC_WALLET: settings.BTC_WALLET || "",
-      });
+      const next: Record<string, string> = {};
+      FIELDS.forEach((f) => { next[f.key] = settings[f.key] ?? ""; });
+      setForm(next);
     }
   }, [settings]);
 
-  const handleSave = async () => {
-    setIsSaving(true);
-
+  const save = async () => {
+    setSaving(true);
     try {
-      const updates = Object.entries(formData).map(([key, value]) => ({
-        key,
-        value: String(value),
-        updated_at: new Date().toISOString(),
-      }));
-
-      for (const update of updates) {
+      for (const f of FIELDS) {
         const { error } = await supabase
           .from("settings")
-          .upsert(update, { onConflict: "key" });
-        
+          .upsert({ key: f.key, value: form[f.key] ?? "", updated_at: new Date().toISOString() }, { onConflict: "key" });
         if (error) throw error;
       }
-
-      toast({
-        title: "Settings Saved",
-        description: "Platform settings have been updated.",
-      });
-
-      queryClient.invalidateQueries({ queryKey: ["admin-settings"] });
-      queryClient.invalidateQueries({ queryKey: ["wallet-addresses"] });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Settings saved" });
+      qc.invalidateQueries({ queryKey: ["admin-settings"] });
+      qc.invalidateQueries({ queryKey: ["wallet"] });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Failed";
+      toast({ title: "Error", description: msg, variant: "destructive" });
     } finally {
-      setIsSaving(false);
+      setSaving(false);
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
+  if (isLoading) return <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
 
   return (
-    <div className="space-y-6">
-      {/* Wallet Addresses */}
-      <Card className="glass-card">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Wallet className="h-5 w-5 text-primary" />
-            Payment Wallet Addresses
-          </CardTitle>
-          <CardDescription>
-            Configure wallet addresses where users will send payments
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="USDT_WALLET_TRC20">USDT Wallet (TRC20 - Tron)</Label>
-            <Input
-              id="USDT_WALLET_TRC20"
-              placeholder="Enter USDT TRC20 wallet address"
-              value={formData.USDT_WALLET_TRC20}
-              onChange={(e) => setFormData(prev => ({ ...prev, USDT_WALLET_TRC20: e.target.value }))}
-            />
+    <Card className="glass-card">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2"><Wallet className="h-5 w-5 text-primary" /> Deposit Wallets</CardTitle>
+        <CardDescription>Wallet addresses shown to users when they deposit.</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {FIELDS.map((f) => (
+          <div key={f.key} className="space-y-2">
+            <Label htmlFor={f.key}>{f.label}</Label>
+            <Input id={f.key} value={form[f.key] || ""} onChange={(e) => setForm((p) => ({ ...p, [f.key]: e.target.value }))} />
           </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="USDT_WALLET_ERC20">USDT Wallet (ERC20 - Ethereum)</Label>
-            <Input
-              id="USDT_WALLET_ERC20"
-              placeholder="Enter USDT ERC20 wallet address"
-              value={formData.USDT_WALLET_ERC20}
-              onChange={(e) => setFormData(prev => ({ ...prev, USDT_WALLET_ERC20: e.target.value }))}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="BTC_WALLET">Bitcoin Wallet</Label>
-            <Input
-              id="BTC_WALLET"
-              placeholder="Enter Bitcoin wallet address"
-              value={formData.BTC_WALLET}
-              onChange={(e) => setFormData(prev => ({ ...prev, BTC_WALLET: e.target.value }))}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Platform Settings */}
-      <Card className="glass-card">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Settings className="h-5 w-5 text-primary" />
-            Platform Settings
-          </CardTitle>
-          <CardDescription>
-            Configure platform-wide settings and parameters
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="platform_name">Platform Name</Label>
-              <Input
-                id="platform_name"
-                value={formData.platform_name}
-                onChange={(e) => setFormData(prev => ({ ...prev, platform_name: e.target.value }))}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="min_withdrawal">Minimum Withdrawal ($)</Label>
-              <Input
-                id="min_withdrawal"
-                type="number"
-                value={formData.min_withdrawal}
-                onChange={(e) => setFormData(prev => ({ ...prev, min_withdrawal: e.target.value }))}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="return_percentage">Return Percentage (%)</Label>
-              <Input
-                id="return_percentage"
-                type="number"
-                value={formData.return_percentage}
-                onChange={(e) => setFormData(prev => ({ ...prev, return_percentage: e.target.value }))}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="return_period_days">Return Period (Days)</Label>
-              <Input
-                id="return_period_days"
-                type="number"
-                value={formData.return_period_days}
-                onChange={(e) => setFormData(prev => ({ ...prev, return_period_days: e.target.value }))}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-4 pt-4 border-t border-border">
-            <h4 className="font-medium">Platform Controls</h4>
-            
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Withdrawals Enabled</Label>
-                <p className="text-sm text-muted-foreground">Allow users to request withdrawals</p>
-              </div>
-              <Switch
-                checked={formData.withdrawals_enabled}
-                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, withdrawals_enabled: checked }))}
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>New Investments Enabled</Label>
-                <p className="text-sm text-muted-foreground">Allow users to create new investments</p>
-              </div>
-              <Switch
-                checked={formData.new_investments_enabled}
-                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, new_investments_enabled: checked }))}
-              />
-            </div>
-          </div>
-
-          <Button onClick={handleSave} disabled={isSaving} variant="hero" className="w-full sm:w-auto">
-            {isSaving ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="h-4 w-4 mr-2" />
-                Save All Settings
-              </>
-            )}
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Testing Tools */}
-      <Card className="glass-card">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Zap className="h-5 w-5 text-primary" />
-            Testing Tools
-          </CardTitle>
-          <CardDescription>
-            Manually trigger system processes for testing purposes
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label>Test Earnings Calculation</Label>
-              <p className="text-sm text-muted-foreground">
-                Manually trigger bi-weekly earnings calculation for all eligible investments
-              </p>
-            </div>
-            <Button 
-              onClick={handleTestEarnings} 
-              disabled={isTesting}
-              variant="outline"
-            >
-              {isTesting ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                <>
-                  <Play className="h-4 w-4 mr-2" />
-                  Test Earnings
-                </>
-              )}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+        ))}
+        <Button onClick={save} disabled={saving} variant="hero">
+          {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+          Save
+        </Button>
+      </CardContent>
+    </Card>
   );
 }

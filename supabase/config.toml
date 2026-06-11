@@ -1,7 +1,10 @@
 project_id = "mocixgnbnuotmdbvikdh"
 
-[functions.calculate-earnings]
+[functions.get-crypto-prices]
 verify_jwt = false
 
-[functions.get-crypto-prices]
+[functions.generate-signal]
+verify_jwt = false
+
+[functions.close-signals]
 verify_jwt = false
