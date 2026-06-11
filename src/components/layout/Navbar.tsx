@@ -1,13 +1,13 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
-import { LogOut, User, Shield, Menu, X, Coins } from "lucide-react";
+import { LogOut, User, Shield, Menu, X, Radio } from "lucide-react";
 import { useState } from "react";
 
 export function Navbar() {
   const { user, isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [open, setOpen] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -19,101 +19,47 @@ export function Navbar() {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
-              <span className="font-display font-bold text-primary-foreground">C</span>
+            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+              <Radio className="h-4 w-4 text-primary-foreground" />
             </div>
             <span className="font-display text-xl font-bold gradient-text">CryptoVest</span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-2">
             {user ? (
               <>
-                <Link to="/dashboard">
-                  <Button variant="ghost" size="sm">
-                    <User className="h-4 w-4 mr-2" />
-                    Dashboard
-                  </Button>
-                </Link>
-                <Link to="/marketplace">
-                  <Button variant="ghost" size="sm">
-                    <Coins className="h-4 w-4 mr-2" />
-                    Marketplace
-                  </Button>
-                </Link>
-                {isAdmin && (
-                  <Link to="/admin">
-                    <Button variant="ghost" size="sm">
-                      <Shield className="h-4 w-4 mr-2" />
-                      Admin
-                    </Button>
-                  </Link>
-                )}
-                <Button variant="outline" size="sm" onClick={handleSignOut}>
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Sign Out
-                </Button>
+                <Link to="/dashboard"><Button variant="ghost" size="sm"><User className="h-4 w-4 mr-2" />Dashboard</Button></Link>
+                <Link to="/signals"><Button variant="ghost" size="sm"><Radio className="h-4 w-4 mr-2" />Signals</Button></Link>
+                {isAdmin && <Link to="/admin"><Button variant="ghost" size="sm"><Shield className="h-4 w-4 mr-2" />Admin</Button></Link>}
+                <Button variant="outline" size="sm" onClick={handleSignOut}><LogOut className="h-4 w-4 mr-2" />Sign Out</Button>
               </>
             ) : (
               <>
-                <Link to="/auth">
-                  <Button variant="ghost" size="sm">Sign In</Button>
-                </Link>
-                <Link to="/auth?mode=signup">
-                  <Button variant="hero" size="sm">Get Started</Button>
-                </Link>
+                <Link to="/auth"><Button variant="ghost" size="sm">Sign In</Button></Link>
+                <Link to="/auth?mode=signup"><Button variant="hero" size="sm">Get Started</Button></Link>
               </>
             )}
           </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            className="md:hidden p-2"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? <X /> : <Menu />}
+          <button className="md:hidden p-2" onClick={() => setOpen(!open)}>
+            {open ? <X /> : <Menu />}
           </button>
         </div>
 
-        {/* Mobile Navigation */}
-        {mobileMenuOpen && (
+        {open && (
           <div className="md:hidden py-4 border-t border-border/50 animate-fade-in">
             <div className="flex flex-col gap-2">
               {user ? (
                 <>
-                  <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="ghost" className="w-full justify-start">
-                      <User className="h-4 w-4 mr-2" />
-                      Dashboard
-                    </Button>
-                  </Link>
-                  <Link to="/marketplace" onClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="ghost" className="w-full justify-start">
-                      <Coins className="h-4 w-4 mr-2" />
-                      Marketplace
-                    </Button>
-                  </Link>
-                  {isAdmin && (
-                    <Link to="/admin" onClick={() => setMobileMenuOpen(false)}>
-                      <Button variant="ghost" className="w-full justify-start">
-                        <Shield className="h-4 w-4 mr-2" />
-                        Admin
-                      </Button>
-                    </Link>
-                  )}
-                  <Button variant="outline" className="w-full justify-start" onClick={handleSignOut}>
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Sign Out
-                  </Button>
+                  <Link to="/dashboard" onClick={() => setOpen(false)}><Button variant="ghost" className="w-full justify-start"><User className="h-4 w-4 mr-2" />Dashboard</Button></Link>
+                  <Link to="/signals" onClick={() => setOpen(false)}><Button variant="ghost" className="w-full justify-start"><Radio className="h-4 w-4 mr-2" />Signals</Button></Link>
+                  {isAdmin && <Link to="/admin" onClick={() => setOpen(false)}><Button variant="ghost" className="w-full justify-start"><Shield className="h-4 w-4 mr-2" />Admin</Button></Link>}
+                  <Button variant="outline" className="w-full justify-start" onClick={handleSignOut}><LogOut className="h-4 w-4 mr-2" />Sign Out</Button>
                 </>
               ) : (
                 <>
-                  <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="ghost" className="w-full">Sign In</Button>
-                  </Link>
-                  <Link to="/auth?mode=signup" onClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="hero" className="w-full">Get Started</Button>
-                  </Link>
+                  <Link to="/auth" onClick={() => setOpen(false)}><Button variant="ghost" className="w-full">Sign In</Button></Link>
+                  <Link to="/auth?mode=signup" onClick={() => setOpen(false)}><Button variant="hero" className="w-full">Get Started</Button></Link>
                 </>
               )}
             </div>

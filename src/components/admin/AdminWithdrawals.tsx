@@ -27,8 +27,7 @@ export function AdminWithdrawals() {
           *,
           profiles (
             full_name,
-            email,
-            referral_code
+            email
           )
         `)
         .order("requested_at", { ascending: false });

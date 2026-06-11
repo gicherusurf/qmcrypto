@@ -5,75 +5,35 @@ import { useAuth } from "@/lib/auth";
 
 export function useRealtimeProfile() {
   const queryClient = useQueryClient();
-  const { profile } = useAuth();
+  const { profile, refreshProfile } = useAuth();
 
   useEffect(() => {
     if (!profile?.id) return;
 
-    console.log("Setting up realtime subscriptions for profile:", profile.id);
-
     const channel = supabase
-      .channel('dashboard-realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'profiles',
-          filter: `id=eq.${profile.id}`,
-        },
-        (payload) => {
-          console.log("Profile updated:", payload);
-          queryClient.invalidateQueries({ queryKey: ["profile"] });
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'investments',
-          filter: `user_id=eq.${profile.id}`,
-        },
-        (payload) => {
-          console.log("Investment updated:", payload);
-          queryClient.invalidateQueries({ queryKey: ["user-investments"] });
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'withdrawals',
-          filter: `user_id=eq.${profile.id}`,
-        },
-        (payload) => {
-          console.log("Withdrawal updated:", payload);
-          queryClient.invalidateQueries({ queryKey: ["user-withdrawals"] });
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'earnings_log',
-          filter: `user_id=eq.${profile.id}`,
-        },
-        (payload) => {
-          console.log("Earnings updated:", payload);
-          queryClient.invalidateQueries({ queryKey: ["user-investments"] });
-          queryClient.invalidateQueries({ queryKey: ["profile"] });
-        }
-      )
-      .subscribe((status) => {
-        console.log("Realtime subscription status:", status);
-      });
+      .channel("dashboard-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "profiles", filter: `id=eq.${profile.id}` }, () => {
+        refreshProfile();
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "signal_takes", filter: `user_id=eq.${profile.id}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ["user-takes"] });
+        queryClient.invalidateQueries({ queryKey: ["recent-trades"] });
+        refreshProfile();
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "withdrawals", filter: `user_id=eq.${profile.id}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ["user-withdrawals"] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "deposits", filter: `user_id=eq.${profile.id}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ["user-deposits"] });
+        refreshProfile();
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "signals" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["signals"] });
+      })
+      .subscribe();
 
     return () => {
-      console.log("Cleaning up realtime subscriptions");
       supabase.removeChannel(channel);
     };
-  }, [profile?.id, queryClient]);
+  }, [profile?.id, queryClient, refreshProfile]);
 }
