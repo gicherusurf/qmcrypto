@@ -14,146 +14,49 @@ export type Database = {
   }
   public: {
     Tables: {
-      earnings_log: {
+      deposits: {
         Row: {
-          amount: number
-          created_at: string | null
-          earning_type: string | null
-          id: string
-          investment_id: string
-          user_id: string
-        }
-        Insert: {
-          amount: number
-          created_at?: string | null
-          earning_type?: string | null
-          id?: string
-          investment_id: string
-          user_id: string
-        }
-        Update: {
-          amount?: number
-          created_at?: string | null
-          earning_type?: string | null
-          id?: string
-          investment_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "earnings_log_investment_id_fkey"
-            columns: ["investment_id"]
-            isOneToOne: false
-            referencedRelation: "investments"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "earnings_log_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      investment_packages: {
-        Row: {
-          amount: number
-          created_at: string | null
-          id: string
-          is_active: boolean | null
-          is_custom: boolean | null
-          min_amount: number | null
-          name: string
-          return_percentage: number | null
-          return_period_days: number | null
-        }
-        Insert: {
-          amount: number
-          created_at?: string | null
-          id?: string
-          is_active?: boolean | null
-          is_custom?: boolean | null
-          min_amount?: number | null
-          name: string
-          return_percentage?: number | null
-          return_period_days?: number | null
-        }
-        Update: {
-          amount?: number
-          created_at?: string | null
-          id?: string
-          is_active?: boolean | null
-          is_custom?: boolean | null
-          min_amount?: number | null
-          name?: string
-          return_percentage?: number | null
-          return_period_days?: number | null
-        }
-        Relationships: []
-      }
-      investments: {
-        Row: {
-          amount: number
-          created_at: string | null
+          admin_notes: string | null
+          amount_usd: number
+          created_at: string
           crypto_amount: number | null
-          crypto_currency: string | null
-          crypto_price_usd: number | null
+          crypto_currency: string
           id: string
-          last_earning_at: string | null
-          next_earning_at: string | null
-          package_id: string
-          payment_proof_url: string | null
-          payment_tx_hash: string | null
-          payment_verified_at: string | null
-          payment_verified_by: string | null
-          status: string | null
+          processed_at: string | null
+          proof_url: string | null
+          status: string
+          tx_hash: string | null
           user_id: string
         }
         Insert: {
-          amount: number
-          created_at?: string | null
+          admin_notes?: string | null
+          amount_usd: number
+          created_at?: string
           crypto_amount?: number | null
-          crypto_currency?: string | null
-          crypto_price_usd?: number | null
+          crypto_currency: string
           id?: string
-          last_earning_at?: string | null
-          next_earning_at?: string | null
-          package_id: string
-          payment_proof_url?: string | null
-          payment_tx_hash?: string | null
-          payment_verified_at?: string | null
-          payment_verified_by?: string | null
-          status?: string | null
+          processed_at?: string | null
+          proof_url?: string | null
+          status?: string
+          tx_hash?: string | null
           user_id: string
         }
         Update: {
-          amount?: number
-          created_at?: string | null
+          admin_notes?: string | null
+          amount_usd?: number
+          created_at?: string
           crypto_amount?: number | null
-          crypto_currency?: string | null
-          crypto_price_usd?: number | null
+          crypto_currency?: string
           id?: string
-          last_earning_at?: string | null
-          next_earning_at?: string | null
-          package_id?: string
-          payment_proof_url?: string | null
-          payment_tx_hash?: string | null
-          payment_verified_at?: string | null
-          payment_verified_by?: string | null
-          status?: string | null
+          processed_at?: string | null
+          proof_url?: string | null
+          status?: string
+          tx_hash?: string | null
           user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "investments_package_id_fkey"
-            columns: ["package_id"]
-            isOneToOne: false
-            referencedRelation: "investment_packages"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "investments_user_id_fkey"
+            foreignKeyName: "deposits_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -167,9 +70,6 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
-          referral_code: string
-          referred_by: string | null
-          token_balance: number | null
           total_balance: number | null
           total_earnings: number | null
           total_withdrawn: number | null
@@ -181,9 +81,6 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
-          referral_code: string
-          referred_by?: string | null
-          token_balance?: number | null
           total_balance?: number | null
           total_earnings?: number | null
           total_withdrawn?: number | null
@@ -195,24 +92,13 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
-          referral_code?: string
-          referred_by?: string | null
-          token_balance?: number | null
           total_balance?: number | null
           total_earnings?: number | null
           total_withdrawn?: number | null
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "profiles_referred_by_fkey"
-            columns: ["referred_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       push_subscriptions: {
         Row: {
@@ -273,110 +159,101 @@ export type Database = {
         }
         Relationships: []
       }
-      token_listings: {
+      signal_takes: {
         Row: {
-          amount: number
-          created_at: string | null
+          closed_at: string | null
+          created_at: string
           id: string
-          price_per_token: number
-          remaining_amount: number
-          seller_id: string
+          profit_amount: number
+          signal_id: string
+          stake_amount: number
           status: string
-          updated_at: string | null
+          user_id: string
         }
         Insert: {
-          amount: number
-          created_at?: string | null
+          closed_at?: string | null
+          created_at?: string
           id?: string
-          price_per_token?: number
-          remaining_amount: number
-          seller_id: string
+          profit_amount?: number
+          signal_id: string
+          stake_amount: number
           status?: string
-          updated_at?: string | null
+          user_id: string
         }
         Update: {
-          amount?: number
-          created_at?: string | null
+          closed_at?: string | null
+          created_at?: string
           id?: string
-          price_per_token?: number
-          remaining_amount?: number
-          seller_id?: string
+          profit_amount?: number
+          signal_id?: string
+          stake_amount?: number
           status?: string
-          updated_at?: string | null
+          user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "token_listings_seller_id_fkey"
-            columns: ["seller_id"]
+            foreignKeyName: "signal_takes_signal_id_fkey"
+            columns: ["signal_id"]
+            isOneToOne: false
+            referencedRelation: "signals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "signal_takes_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
       }
-      token_transactions: {
+      signals: {
         Row: {
-          admin_notes: string | null
-          amount: number
-          buyer_id: string
-          created_at: string | null
+          closed_at: string | null
+          closes_at: string
+          created_at: string
+          direction: string
+          entry_price: number
           id: string
-          listing_id: string | null
-          payment_proof_url: string | null
-          processed_at: string | null
-          seller_id: string
+          message: string | null
+          opens_at: string
+          pair: string
+          profit_percentage: number
           status: string
-          total_price: number
+          stop_loss: number | null
+          target_price: number
         }
         Insert: {
-          admin_notes?: string | null
-          amount: number
-          buyer_id: string
-          created_at?: string | null
+          closed_at?: string | null
+          closes_at: string
+          created_at?: string
+          direction: string
+          entry_price: number
           id?: string
-          listing_id?: string | null
-          payment_proof_url?: string | null
-          processed_at?: string | null
-          seller_id: string
+          message?: string | null
+          opens_at?: string
+          pair: string
+          profit_percentage?: number
           status?: string
-          total_price: number
+          stop_loss?: number | null
+          target_price: number
         }
         Update: {
-          admin_notes?: string | null
-          amount?: number
-          buyer_id?: string
-          created_at?: string | null
+          closed_at?: string | null
+          closes_at?: string
+          created_at?: string
+          direction?: string
+          entry_price?: number
           id?: string
-          listing_id?: string | null
-          payment_proof_url?: string | null
-          processed_at?: string | null
-          seller_id?: string
+          message?: string | null
+          opens_at?: string
+          pair?: string
+          profit_percentage?: number
           status?: string
-          total_price?: number
+          stop_loss?: number | null
+          target_price?: number
         }
-        Relationships: [
-          {
-            foreignKeyName: "token_transactions_buyer_id_fkey"
-            columns: ["buyer_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "token_transactions_listing_id_fkey"
-            columns: ["listing_id"]
-            isOneToOne: false
-            referencedRelation: "token_listings"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "token_transactions_seller_id_fkey"
-            columns: ["seller_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       user_roles: {
         Row: {
@@ -442,7 +319,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      generate_referral_code: { Args: never; Returns: string }
       get_user_profile_id: { Args: never; Returns: string }
       has_role: {
         Args: {
@@ -450,6 +326,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      take_signal: {
+        Args: { _signal_id: string; _stake: number }
+        Returns: string
       }
     }
     Enums: {
