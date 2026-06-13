@@ -33,7 +33,7 @@ Deno.serve(async (req) => {
 
         const { data: prof } = await supabase
           .from("profiles")
-          .select("total_balance, total_earnings")
+          .select("total_balance, total_earnings, referred_by")
           .eq("id", take.user_id)
           .maybeSingle();
         if (!prof) continue;
@@ -51,6 +51,33 @@ Deno.serve(async (req) => {
           .from("signal_takes")
           .update({ status: "won", profit_amount: profit, closed_at: now })
           .eq("id", take.id);
+
+        // Referral commission: 0.5% of profit to referrer
+        if (prof.referred_by) {
+          const commission = profit * 0.005;
+          const { data: refProf } = await supabase
+            .from("profiles")
+            .select("total_balance, total_earnings")
+            .eq("id", prof.referred_by)
+            .maybeSingle();
+          if (refProf) {
+            await supabase
+              .from("profiles")
+              .update({
+                total_balance: Number(refProf.total_balance) + commission,
+                total_earnings: Number(refProf.total_earnings) + commission,
+              })
+              .eq("id", prof.referred_by);
+
+            await supabase.from("referral_commissions").insert({
+              referrer_id: prof.referred_by,
+              referee_id: take.user_id,
+              signal_take_id: take.id,
+              stake_amount: take.stake_amount,
+              commission_amount: commission,
+            });
+          }
+        }
       }
 
       await supabase.from("signals").update({ status: "closed", closed_at: now }).eq("id", signal.id);
