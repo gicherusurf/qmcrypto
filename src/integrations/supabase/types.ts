@@ -70,6 +70,8 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
+          referral_code: string | null
+          referred_by: string | null
           total_balance: number | null
           total_earnings: number | null
           total_withdrawn: number | null
@@ -81,6 +83,8 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+          referral_code?: string | null
+          referred_by?: string | null
           total_balance?: number | null
           total_earnings?: number | null
           total_withdrawn?: number | null
@@ -92,13 +96,23 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+          referral_code?: string | null
+          referred_by?: string | null
           total_balance?: number | null
           total_earnings?: number | null
           total_withdrawn?: number | null
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_referred_by_fkey"
+            columns: ["referred_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       push_subscriptions: {
         Row: {
@@ -131,6 +145,58 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referral_commissions: {
+        Row: {
+          commission_amount: number
+          created_at: string
+          id: string
+          referee_id: string
+          referrer_id: string
+          signal_take_id: string | null
+          stake_amount: number
+        }
+        Insert: {
+          commission_amount: number
+          created_at?: string
+          id?: string
+          referee_id: string
+          referrer_id: string
+          signal_take_id?: string | null
+          stake_amount: number
+        }
+        Update: {
+          commission_amount?: number
+          created_at?: string
+          id?: string
+          referee_id?: string
+          referrer_id?: string
+          signal_take_id?: string | null
+          stake_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_commissions_referee_id_fkey"
+            columns: ["referee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_commissions_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_commissions_signal_take_id_fkey"
+            columns: ["signal_take_id"]
+            isOneToOne: false
+            referencedRelation: "signal_takes"
             referencedColumns: ["id"]
           },
         ]
