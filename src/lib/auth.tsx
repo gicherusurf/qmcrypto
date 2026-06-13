@@ -10,6 +10,8 @@ interface Profile {
   total_balance: number;
   total_earnings: number;
   total_withdrawn: number;
+  referral_code: string | null;
+  referred_by: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -21,8 +23,8 @@ interface AuthContextType {
   isAdmin: boolean;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
-  signUp: (email: string, password: string, fullName: string, bootstrapCode?: string) => Promise<{ error: Error | null }>;
-  signOut: () => Promise<void>;
+  signUp: (email: string, password: string, fullName: string, bootstrapCode?: string, referralCode?: string) => Promise<{ error: Error | null }>;
+  signOut: () => Promise<void>
   refreshProfile: () => Promise<void>;
 }
 
@@ -91,7 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error };
   };
 
-  const signUp = async (email: string, password: string, fullName: string, bootstrapCode?: string) => {
+  const signUp = async (email: string, password: string, fullName: string, bootstrapCode?: string, referralCode?: string) => {
     const redirectUrl = `${window.location.origin}/`;
     const { error } = await supabase.auth.signUp({
       email,
@@ -101,6 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         data: {
           full_name: fullName,
           bootstrap_code: (bootstrapCode || "").toUpperCase(),
+          referral_code: (referralCode || "").toUpperCase(),
         },
       },
     });

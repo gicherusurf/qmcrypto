@@ -22,13 +22,14 @@ const signUpSchema = z.object({
 
 export default function Auth() {
   const [searchParams] = useSearchParams();
-  const [isSignUp, setIsSignUp] = useState(searchParams.get("mode") === "signup");
+  const [isSignUp, setIsSignUp] = useState(searchParams.get("mode") === "signup" || !!searchParams.get("ref"));
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [bootstrapCode, setBootstrapCode] = useState("");
+  const [referralCode, setReferralCode] = useState((searchParams.get("ref") || "").toUpperCase());
 
   const { signIn, signUp } = useAuth();
   const { toast } = useToast();
@@ -45,7 +46,7 @@ export default function Auth() {
           setLoading(false);
           return;
         }
-        const { error } = await signUp(email, password, fullName, bootstrapCode);
+        const { error } = await signUp(email, password, fullName, bootstrapCode, referralCode);
         if (error) {
           toast({ title: "Error", description: error.message, variant: "destructive" });
         } else {
@@ -109,6 +110,13 @@ export default function Auth() {
                   </button>
                 </div>
               </div>
+
+              {isSignUp && (
+                <div className="space-y-2">
+                  <Label htmlFor="referralCode">Referral Code (Optional)</Label>
+                  <Input id="referralCode" value={referralCode} onChange={(e) => setReferralCode(e.target.value.toUpperCase())} placeholder="Enter a friend's code" />
+                </div>
+              )}
 
               {isSignUp && (
                 <div className="space-y-2">
