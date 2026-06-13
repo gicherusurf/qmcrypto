@@ -44,7 +44,7 @@ export function ReferralCard() {
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm text-muted-foreground">
-          Earn <span className="text-primary font-semibold">0.5%</span> commission on every signal your referrals take. Credited instantly to your trading balance.
+          Earn <span className="text-primary font-semibold">0.5%</span> of the profit on every signal your referrals take. Credited when the signal closes to your trading balance.
         </p>
 
         <div className="grid grid-cols-2 gap-4">
