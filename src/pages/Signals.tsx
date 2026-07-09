@@ -44,6 +44,12 @@ export default function Signals() {
     if (!loading && !user) navigate("/auth");
   }, [user, loading, navigate]);
 
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const i = setInterval(() => setTick((t) => t + 1), 1000);
+    return () => clearInterval(i);
+  }, []);
+
   const { data: signals, refetch: refetchSignals } = useQuery({
     queryKey: ["signals"],
     queryFn: async () => {
@@ -55,6 +61,8 @@ export default function Signals() {
       if (error) throw error;
       return (data ?? []) as SignalRow[];
     },
+    refetchInterval: 15000,
+    refetchOnWindowFocus: true,
   });
 
   const { data: takes, refetch: refetchTakes } = useQuery({
