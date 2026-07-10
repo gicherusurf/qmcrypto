@@ -39,12 +39,12 @@ export function ReferralCard() {
     <Card className="glass-card">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Gift className="h-5 w-5 text-primary" /> Refer & Earn 0.5%
+          <Gift className="h-5 w-5 text-primary" /> Refer & Earn
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm text-muted-foreground">
-          Earn <span className="text-primary font-semibold">0.5%</span> of the profit on every signal your referrals take. Credited when the signal closes to your trading balance.
+          Earn a <span className="text-primary font-semibold">10% instant bonus</span> on every approved referral deposit, plus <span className="text-primary font-semibold">0.5% of profits</span> from each signal your referrals take.
         </p>
 
         <div className="grid grid-cols-2 gap-4">
