@@ -77,6 +77,7 @@ export type Database = {
           total_withdrawn: number | null
           updated_at: string | null
           user_id: string
+          withdrawable_balance: number
         }
         Insert: {
           created_at?: string | null
@@ -90,6 +91,7 @@ export type Database = {
           total_withdrawn?: number | null
           updated_at?: string | null
           user_id: string
+          withdrawable_balance?: number
         }
         Update: {
           created_at?: string | null
@@ -103,6 +105,7 @@ export type Database = {
           total_withdrawn?: number | null
           updated_at?: string | null
           user_id?: string
+          withdrawable_balance?: number
         }
         Relationships: [
           {
@@ -343,7 +346,9 @@ export type Database = {
         Row: {
           admin_notes: string | null
           amount: number
+          fee_amount: number
           id: string
+          net_amount: number
           processed_at: string | null
           requested_at: string | null
           status: string | null
@@ -353,7 +358,9 @@ export type Database = {
         Insert: {
           admin_notes?: string | null
           amount: number
+          fee_amount?: number
           id?: string
+          net_amount?: number
           processed_at?: string | null
           requested_at?: string | null
           status?: string | null
@@ -363,7 +370,9 @@ export type Database = {
         Update: {
           admin_notes?: string | null
           amount?: number
+          fee_amount?: number
           id?: string
+          net_amount?: number
           processed_at?: string | null
           requested_at?: string | null
           status?: string | null
@@ -385,6 +394,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_deposit: { Args: { _deposit_id: string }; Returns: undefined }
       get_user_profile_id: { Args: never; Returns: string }
       has_role: {
         Args: {
@@ -392,6 +402,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      request_withdrawal: {
+        Args: { _amount: number; _wallet: string }
+        Returns: string
       }
       take_signal: {
         Args: { _signal_id: string; _stake: number }
