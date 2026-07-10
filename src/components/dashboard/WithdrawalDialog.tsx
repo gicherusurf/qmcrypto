@@ -156,6 +156,15 @@ export function WithdrawalDialog({ open, onOpenChange, onSuccess }: WithdrawalDi
             />
           </div>
 
+          {withdrawAmountNum > 0 && (
+            <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 text-sm space-y-1">
+              <div className="flex justify-between"><span className="text-muted-foreground">Requested</span><span>${withdrawAmountNum.toFixed(2)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Withdrawal fee (20%)</span><span className="text-destructive">-${feeAmount.toFixed(2)}</span></div>
+              <div className="flex justify-between font-semibold pt-1 border-t border-border"><span>You receive</span><span className="text-success">${netAmount.toFixed(2)}</span></div>
+            </div>
+          )}
+
+
           {nextWithdrawalDate && canWithdraw && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Calendar className="h-4 w-4" />

@@ -29,17 +29,15 @@ export function AdminDeposits() {
   const process = async (id: string, userProfileId: string, amount: number, action: "approved" | "rejected") => {
     setBusyId(id);
     try {
-      const { error } = await supabase
-        .from("deposits")
-        .update({ status: action, processed_at: new Date().toISOString() })
-        .eq("id", id);
-      if (error) throw error;
-
       if (action === "approved") {
-        const { data: prof } = await supabase.from("profiles").select("total_balance").eq("id", userProfileId).maybeSingle();
-        const newBalance = Number(prof?.total_balance || 0) + Number(amount);
-        const { error: upErr } = await supabase.from("profiles").update({ total_balance: newBalance }).eq("id", userProfileId);
-        if (upErr) throw upErr;
+        const { error } = await supabase.rpc("approve_deposit", { _deposit_id: id });
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("deposits")
+          .update({ status: "rejected", processed_at: new Date().toISOString() })
+          .eq("id", id);
+        if (error) throw error;
       }
 
       toast({ title: `Deposit ${action}` });
