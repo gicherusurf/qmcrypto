@@ -46,21 +46,24 @@ export function WithdrawalDialog({ open, onOpenChange, onSuccess }: WithdrawalDi
     : null;
   
   const canWithdraw = !nextWithdrawalDate || isAfter(new Date(), nextWithdrawalDate);
-  const availableBalance = profile?.total_balance || 0;
+  const availableBalance = Number(profile?.withdrawable_balance || 0);
+  const withdrawAmountNum = parseFloat(amount) || 0;
+  const feeAmount = withdrawAmountNum * 0.20;
+  const netAmount = withdrawAmountNum - feeAmount;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!profile?.id) return;
 
     const withdrawAmount = parseFloat(amount);
-    
+
     if (isNaN(withdrawAmount) || withdrawAmount <= 0) {
       toast({ title: "Invalid amount", variant: "destructive" });
       return;
     }
 
     if (withdrawAmount > availableBalance) {
-      toast({ title: "Insufficient balance", variant: "destructive" });
+      toast({ title: "Insufficient profits", description: "You can only withdraw profits, not deposits or bonuses.", variant: "destructive" });
       return;
     }
 
@@ -76,16 +79,14 @@ export function WithdrawalDialog({ open, onOpenChange, onSuccess }: WithdrawalDi
 
     setLoading(true);
     try {
-      const { error } = await supabase.from("withdrawals").insert({
-        user_id: profile.id,
-        amount: withdrawAmount,
-        wallet_address: walletAddress.trim(),
-        status: "pending",
+      const { error } = await supabase.rpc("request_withdrawal", {
+        _amount: withdrawAmount,
+        _wallet: walletAddress.trim(),
       });
 
       if (error) throw error;
 
-      toast({ title: "Withdrawal request submitted" });
+      toast({ title: "Withdrawal request submitted", description: `You'll receive $${netAmount.toFixed(2)} after the 20% fee.` });
       setAmount("");
       setWalletAddress("");
       onSuccess();
@@ -120,9 +121,10 @@ export function WithdrawalDialog({ open, onOpenChange, onSuccess }: WithdrawalDi
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="p-4 rounded-lg bg-muted/50">
-            <p className="text-sm text-muted-foreground">Available Balance</p>
+          <div className="p-4 rounded-lg bg-muted/50 space-y-1">
+            <p className="text-sm text-muted-foreground">Withdrawable Profits</p>
             <p className="text-2xl font-bold text-primary">${availableBalance.toFixed(2)}</p>
+            <p className="text-xs text-muted-foreground">Only trading profits can be withdrawn. Deposits and bonuses are non-withdrawable.</p>
           </div>
 
           <div className="space-y-2">
@@ -153,6 +155,15 @@ export function WithdrawalDialog({ open, onOpenChange, onSuccess }: WithdrawalDi
               className="bg-background"
             />
           </div>
+
+          {withdrawAmountNum > 0 && (
+            <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 text-sm space-y-1">
+              <div className="flex justify-between"><span className="text-muted-foreground">Requested</span><span>${withdrawAmountNum.toFixed(2)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Withdrawal fee (20%)</span><span className="text-destructive">-${feeAmount.toFixed(2)}</span></div>
+              <div className="flex justify-between font-semibold pt-1 border-t border-border"><span>You receive</span><span className="text-success">${netAmount.toFixed(2)}</span></div>
+            </div>
+          )}
+
 
           {nextWithdrawalDate && canWithdraw && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">

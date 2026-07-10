@@ -33,17 +33,19 @@ Deno.serve(async (req) => {
 
         const { data: prof } = await supabase
           .from("profiles")
-          .select("total_balance, total_earnings, referred_by")
+          .select("total_balance, total_earnings, withdrawable_balance, referred_by")
           .eq("id", take.user_id)
           .maybeSingle();
         if (!prof) continue;
 
+        // Return stake to total_balance; profit is added to BOTH total & withdrawable
         const newBal = Number(prof.total_balance) + total;
         const newEarn = Number(prof.total_earnings) + profit;
+        const newWithdrawable = Number(prof.withdrawable_balance || 0) + profit;
 
         const { error: profErr } = await supabase
           .from("profiles")
-          .update({ total_balance: newBal, total_earnings: newEarn })
+          .update({ total_balance: newBal, total_earnings: newEarn, withdrawable_balance: newWithdrawable })
           .eq("id", take.user_id);
         if (profErr) { console.error(profErr); continue; }
 
@@ -57,7 +59,7 @@ Deno.serve(async (req) => {
           const commission = profit * 0.005;
           const { data: refProf } = await supabase
             .from("profiles")
-            .select("total_balance, total_earnings")
+            .select("total_balance, total_earnings, withdrawable_balance")
             .eq("id", prof.referred_by)
             .maybeSingle();
           if (refProf) {
@@ -66,6 +68,7 @@ Deno.serve(async (req) => {
               .update({
                 total_balance: Number(refProf.total_balance) + commission,
                 total_earnings: Number(refProf.total_earnings) + commission,
+                withdrawable_balance: Number(refProf.withdrawable_balance || 0) + commission,
               })
               .eq("id", prof.referred_by);
 

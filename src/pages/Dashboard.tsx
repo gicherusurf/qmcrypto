@@ -59,6 +59,18 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-display font-bold">${Number(profile.total_balance).toFixed(2)}</div>
+              <p className="text-xs text-muted-foreground mt-1">Available for signals</p>
+            </CardContent>
+          </Card>
+
+          <Card className="glass-card">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Withdrawable Profits</CardTitle>
+              <ArrowUpRight className="h-4 w-4 text-success" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-display font-bold text-success">${Number(profile.withdrawable_balance || 0).toFixed(2)}</div>
+              <p className="text-xs text-muted-foreground mt-1">Profits only — 20% fee on withdrawal</p>
             </CardContent>
           </Card>
 
