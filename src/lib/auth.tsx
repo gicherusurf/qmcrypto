@@ -10,6 +10,7 @@ interface Profile {
   total_balance: number;
   total_earnings: number;
   total_withdrawn: number;
+  withdrawable_balance: number;
   referral_code: string | null;
   referred_by: string | null;
   created_at: string;
