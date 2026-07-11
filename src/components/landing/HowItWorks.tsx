@@ -13,7 +13,7 @@ export function HowItWorks() {
       <div className="container mx-auto px-4">
         <div className="max-w-3xl mx-auto text-center mb-14">
           <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-            How <span className="gradient-text">CryptoVest</span> works
+            How <span className="gradient-text">QMProfits</span> works
           </h2>
           <p className="text-muted-foreground">
             Four simple steps from deposit to profit.

@@ -9,7 +9,7 @@ export function Footer() {
             <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
               <span className="font-display font-bold text-primary-foreground">C</span>
             </div>
-            <span className="font-display text-xl font-bold gradient-text">CryptoVest</span>
+            <span className="font-display text-xl font-bold gradient-text">QMProfits</span>
           </div>
 
           <nav className="flex items-center gap-6 text-sm text-muted-foreground">
@@ -19,7 +19,7 @@ export function Footer() {
           </nav>
 
           <p className="text-sm text-muted-foreground">
-            © 2024 CryptoVest. All rights reserved.
+            © 2024 QMProfits. All rights reserved.
           </p>
         </div>
       </div>
