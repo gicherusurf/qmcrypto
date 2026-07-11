@@ -395,6 +395,11 @@ export type Database = {
     }
     Functions: {
       approve_deposit: { Args: { _deposit_id: string }; Returns: undefined }
+      approve_withdrawal: {
+        Args: { _id: string; _notes?: string }
+        Returns: undefined
+      }
+      complete_withdrawal: { Args: { _id: string }; Returns: undefined }
       get_user_profile_id: { Args: never; Returns: string }
       has_role: {
         Args: {
@@ -402,6 +407,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      reject_withdrawal: {
+        Args: { _id: string; _notes?: string }
+        Returns: undefined
       }
       request_withdrawal: {
         Args: { _amount: number; _wallet: string }
