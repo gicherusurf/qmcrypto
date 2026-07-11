@@ -99,13 +99,9 @@ export function AdminWithdrawals() {
 
   const completeWithdrawal = async (withdrawalId: string) => {
     try {
-      const { error } = await supabase
-        .from("withdrawals")
-        .update({
-          status: "completed",
-          processed_at: new Date().toISOString(),
-        })
-        .eq("id", withdrawalId);
+      const { error } = await supabase.rpc("complete_withdrawal" as any, {
+        _id: withdrawalId,
+      });
 
       if (error) throw error;
 
