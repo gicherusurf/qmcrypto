@@ -69,14 +69,11 @@ export function AdminWithdrawals() {
     setIsProcessing(true);
 
     try {
-      const { error } = await supabase
-        .from("withdrawals")
-        .update({
-          status,
-          admin_notes: adminNotes,
-          processed_at: new Date().toISOString(),
-        })
-        .eq("id", selectedWithdrawal.id);
+      const rpcName = status === "approved" ? "approve_withdrawal" : "reject_withdrawal";
+      const { error } = await supabase.rpc(rpcName as any, {
+        _id: selectedWithdrawal.id,
+        _notes: adminNotes || null,
+      });
 
       if (error) throw error;
 
@@ -102,13 +99,9 @@ export function AdminWithdrawals() {
 
   const completeWithdrawal = async (withdrawalId: string) => {
     try {
-      const { error } = await supabase
-        .from("withdrawals")
-        .update({
-          status: "completed",
-          processed_at: new Date().toISOString(),
-        })
-        .eq("id", withdrawalId);
+      const { error } = await supabase.rpc("complete_withdrawal" as any, {
+        _id: withdrawalId,
+      });
 
       if (error) throw error;
 

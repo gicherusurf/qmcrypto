@@ -65,8 +65,8 @@ export function DepositDialog({ open, onOpenChange, onSuccess }: Props) {
         const path = `${profile.user_id}/${Date.now()}-${proofFile.name}`;
         const { error: upErr } = await supabase.storage.from("payment-proofs").upload(path, proofFile);
         if (upErr) throw upErr;
-        const { data } = supabase.storage.from("payment-proofs").getPublicUrl(path);
-        proofUrl = data.publicUrl;
+        // Store storage path; admins fetch a short-lived signed URL to view
+        proofUrl = path;
       }
       const { error } = await supabase.from("deposits").insert({
         user_id: profile.id,

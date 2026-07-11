@@ -95,7 +95,23 @@ export function AdminDeposits() {
                             <Button size="sm" variant="destructive" disabled={busyId === d.id} onClick={() => process(d.id, d.user_id, Number(d.amount_usd), "rejected")}><X className="h-3 w-3" /></Button>
                           </div>
                         )}
-                        {d.proof_url && <a href={d.proof_url} target="_blank" rel="noreferrer" className="text-xs text-primary block mt-1">Proof</a>}
+                        {d.proof_url && (
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              const path = d.proof_url.includes("://")
+                                ? d.proof_url.split("/payment-proofs/")[1]
+                                : d.proof_url;
+                              const { data, error } = await supabase.storage
+                                .from("payment-proofs")
+                                .createSignedUrl(path, 300);
+                              if (!error && data?.signedUrl) window.open(data.signedUrl, "_blank");
+                            }}
+                            className="text-xs text-primary block mt-1 underline"
+                          >
+                            View proof
+                          </button>
+                        )}
                       </TableCell>
                     </TableRow>
                   );
