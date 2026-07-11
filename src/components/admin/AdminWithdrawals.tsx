@@ -69,14 +69,11 @@ export function AdminWithdrawals() {
     setIsProcessing(true);
 
     try {
-      const { error } = await supabase
-        .from("withdrawals")
-        .update({
-          status,
-          admin_notes: adminNotes,
-          processed_at: new Date().toISOString(),
-        })
-        .eq("id", selectedWithdrawal.id);
+      const rpcName = status === "approved" ? "approve_withdrawal" : "reject_withdrawal";
+      const { error } = await supabase.rpc(rpcName as any, {
+        _id: selectedWithdrawal.id,
+        _notes: adminNotes || null,
+      });
 
       if (error) throw error;
 
