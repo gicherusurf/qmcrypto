@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Payment proofs are publicly readable" ON storage.objects;

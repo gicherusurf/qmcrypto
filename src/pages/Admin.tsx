@@ -3,12 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { Navbar } from "@/components/layout/Navbar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, ArrowUpRight, Settings, DollarSign, Radio } from "lucide-react";
+import { Users, ArrowUpRight, Settings, DollarSign, Radio, LayoutDashboard } from "lucide-react";
 import { AdminUsers } from "@/components/admin/AdminUsers";
 import { AdminWithdrawals } from "@/components/admin/AdminWithdrawals";
 import { AdminSettings } from "@/components/admin/AdminSettings";
 import { AdminDeposits } from "@/components/admin/AdminDeposits";
 import { AdminSignals } from "@/components/admin/AdminSignals";
+import { AdminOverview } from "@/components/admin/AdminOverview";
 
 export default function Admin() {
   const { user, isAdmin, loading } = useAuth();
@@ -32,8 +33,11 @@ export default function Admin() {
           <p className="text-muted-foreground">Manage deposits, signals, withdrawals, and platform settings</p>
         </div>
 
-        <Tabs defaultValue="deposits" className="space-y-6">
+        <Tabs defaultValue="overview" className="space-y-6">
           <TabsList className="bg-secondary/50 border border-border flex-wrap h-auto gap-1 p-1">
+            <TabsTrigger value="overview" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
+              <LayoutDashboard className="h-3 w-3 sm:h-4 sm:w-4" /><span>Overview</span>
+            </TabsTrigger>
             <TabsTrigger value="deposits" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
               <DollarSign className="h-3 w-3 sm:h-4 sm:w-4" /><span>Deposits</span>
             </TabsTrigger>
@@ -51,6 +55,7 @@ export default function Admin() {
             </TabsTrigger>
           </TabsList>
 
+          <TabsContent value="overview"><AdminOverview /></TabsContent>
           <TabsContent value="deposits"><AdminDeposits /></TabsContent>
           <TabsContent value="signals"><AdminSignals /></TabsContent>
           <TabsContent value="withdrawals"><AdminWithdrawals /></TabsContent>
