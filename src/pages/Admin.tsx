@@ -3,13 +3,15 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { Navbar } from "@/components/layout/Navbar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, ArrowUpRight, Settings, DollarSign, Radio, LayoutDashboard } from "lucide-react";
+import { Users, ArrowUpRight, Settings, DollarSign, Radio, LayoutDashboard, History, Gift } from "lucide-react";
 import { AdminUsers } from "@/components/admin/AdminUsers";
 import { AdminWithdrawals } from "@/components/admin/AdminWithdrawals";
 import { AdminSettings } from "@/components/admin/AdminSettings";
 import { AdminDeposits } from "@/components/admin/AdminDeposits";
 import { AdminSignals } from "@/components/admin/AdminSignals";
 import { AdminOverview } from "@/components/admin/AdminOverview";
+import { AdminDepositsHistory } from "@/components/admin/AdminDepositsHistory";
+import { AdminReferrals } from "@/components/admin/AdminReferrals";
 
 export default function Admin() {
   const { user, isAdmin, loading } = useAuth();
@@ -41,6 +43,12 @@ export default function Admin() {
             <TabsTrigger value="deposits" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
               <DollarSign className="h-3 w-3 sm:h-4 sm:w-4" /><span>Deposits</span>
             </TabsTrigger>
+            <TabsTrigger value="deposits-history" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
+              <History className="h-3 w-3 sm:h-4 sm:w-4" /><span>Dep. History</span>
+            </TabsTrigger>
+            <TabsTrigger value="referrals" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
+              <Gift className="h-3 w-3 sm:h-4 sm:w-4" /><span>Referrals</span>
+            </TabsTrigger>
             <TabsTrigger value="signals" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
               <Radio className="h-3 w-3 sm:h-4 sm:w-4" /><span>Signals</span>
             </TabsTrigger>
@@ -57,6 +65,8 @@ export default function Admin() {
 
           <TabsContent value="overview"><AdminOverview /></TabsContent>
           <TabsContent value="deposits"><AdminDeposits /></TabsContent>
+          <TabsContent value="deposits-history"><AdminDepositsHistory /></TabsContent>
+          <TabsContent value="referrals"><AdminReferrals /></TabsContent>
           <TabsContent value="signals"><AdminSignals /></TabsContent>
           <TabsContent value="withdrawals"><AdminWithdrawals /></TabsContent>
           <TabsContent value="users"><AdminUsers /></TabsContent>
