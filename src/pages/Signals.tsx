@@ -56,10 +56,10 @@ export default function Signals() {
       const { data, error } = await supabase
         .from("signals")
         .select("*")
-        .order("created_at", { ascending: true })
+        .order("created_at", { ascending: false })
         .limit(50);
       if (error) throw error;
-      return (data ?? []) as SignalRow[];
+      return ((data ?? []) as SignalRow[]).slice().reverse();
     },
     refetchInterval: 15000,
     refetchOnWindowFocus: true,
