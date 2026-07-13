@@ -1,7 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Loader2, Users, Gift, TrendingUp, ChevronRight, ChevronDown } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Loader2, Users, Gift, TrendingUp, ChevronRight, ChevronDown, User as UserIcon, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
@@ -62,7 +64,7 @@ function buildTree(profiles: Profile[], commissions: Commission[]): { roots: Tre
   return { roots, byId };
 }
 
-function TreeRow({ node, depth = 0 }: { node: TreeNode; depth?: number }) {
+function TreeRow({ node, depth = 0, onSelect }: { node: TreeNode; depth?: number; onSelect: (id: string) => void }) {
   const [open, setOpen] = useState(depth < 1);
   const hasChildren = node.children.length > 0;
   return (
@@ -77,10 +79,16 @@ function TreeRow({ node, depth = 0 }: { node: TreeNode; depth?: number }) {
         >
           {open ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
         </button>
-        <div className="flex-1 min-w-0">
-          <div className="font-medium truncate">{node.full_name || "—"}</div>
+        <button
+          onClick={() => onSelect(node.id)}
+          className="flex-1 min-w-0 text-left hover:text-primary transition-colors"
+        >
+          <div className="font-medium truncate flex items-center gap-1">
+            {node.full_name || "—"}
+            <ExternalLink className="h-3 w-3 opacity-50" />
+          </div>
           <div className="text-xs text-muted-foreground truncate">{node.email}</div>
-        </div>
+        </button>
         <div className="hidden sm:block text-xs font-mono text-muted-foreground">{node.referral_code}</div>
         <div className="text-xs text-center w-20">
           <div className="font-medium">{node.children.length}</div>
@@ -94,13 +102,193 @@ function TreeRow({ node, depth = 0 }: { node: TreeNode; depth?: number }) {
           ${node.commissionsEarned.toFixed(2)}
         </div>
       </div>
-      {open && node.children.map((c) => <TreeRow key={c.id} node={c} depth={depth + 1} />)}
+      {open && node.children.map((c) => <TreeRow key={c.id} node={c} depth={depth + 1} onSelect={onSelect} />)}
     </>
+  );
+}
+
+function UserDetailPanel({
+  node,
+  byId,
+  commissions,
+  onSelect,
+  onClose,
+}: {
+  node: TreeNode;
+  byId: Map<string, TreeNode>;
+  commissions: Commission[];
+  onSelect: (id: string) => void;
+  onClose: () => void;
+}) {
+  const referrer = node.referred_by ? byId.get(node.referred_by) : null;
+  const earned = commissions.filter((c) => c.referrer_id === node.id);
+  const paidToReferrer = commissions.filter((c) => c.referee_id === node.id);
+  const totalEarned = earned.reduce((s, c) => s + Number(c.commission_amount || 0), 0);
+  const totalStakeBasis = earned.reduce((s, c) => s + Number(c.stake_amount || 0), 0);
+
+  return (
+    <Dialog open={true} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <UserIcon className="h-5 w-5 text-primary" />
+            {node.full_name || "—"}
+          </DialogTitle>
+          <DialogDescription className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
+            <span>{node.email}</span>
+            <span className="font-mono">Code: {node.referral_code}</span>
+            <span>Joined {format(new Date(node.created_at), "MMM d, yyyy")}</span>
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="rounded-lg border border-border p-3">
+            <div className="text-xs text-muted-foreground">Direct referrals</div>
+            <div className="text-lg font-bold">{node.children.length}</div>
+          </div>
+          <div className="rounded-lg border border-border p-3">
+            <div className="text-xs text-muted-foreground">Total downline</div>
+            <div className="text-lg font-bold">{node.totalDownline}</div>
+          </div>
+          <div className="rounded-lg border border-border p-3">
+            <div className="text-xs text-muted-foreground">Commissions earned</div>
+            <div className="text-lg font-bold text-success">${totalEarned.toFixed(2)}</div>
+          </div>
+          <div className="rounded-lg border border-border p-3">
+            <div className="text-xs text-muted-foreground">Payout events</div>
+            <div className="text-lg font-bold">{earned.length}</div>
+          </div>
+        </div>
+
+        {referrer && (
+          <div className="rounded-lg border border-border p-3 text-sm flex items-center justify-between">
+            <div>
+              <div className="text-xs text-muted-foreground">Referred by</div>
+              <div className="font-medium">{referrer.full_name || "—"}</div>
+              <div className="text-xs text-muted-foreground">{referrer.email}</div>
+            </div>
+            <Button size="sm" variant="outline" onClick={() => onSelect(referrer.id)}>
+              View <ExternalLink className="h-3 w-3 ml-1" />
+            </Button>
+          </div>
+        )}
+
+        <div>
+          <h4 className="text-sm font-semibold mb-2">Direct referrals ({node.children.length})</h4>
+          <div className="rounded-lg border border-border overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>User</TableHead>
+                  <TableHead className="text-right">Direct</TableHead>
+                  <TableHead className="text-right">Downline</TableHead>
+                  <TableHead className="text-right">Earned</TableHead>
+                  <TableHead>Joined</TableHead>
+                  <TableHead></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {node.children.map((c) => (
+                  <TableRow key={c.id}>
+                    <TableCell>
+                      <div className="text-sm font-medium">{c.full_name || "—"}</div>
+                      <div className="text-xs text-muted-foreground">{c.email}</div>
+                    </TableCell>
+                    <TableCell className="text-right">{c.children.length}</TableCell>
+                    <TableCell className="text-right">{c.totalDownline}</TableCell>
+                    <TableCell className="text-right text-success">${c.commissionsEarned.toFixed(2)}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground">{format(new Date(c.created_at), "MMM d")}</TableCell>
+                    <TableCell>
+                      <Button size="sm" variant="ghost" onClick={() => onSelect(c.id)}>
+                        <ExternalLink className="h-3 w-3" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {node.children.length === 0 && (
+                  <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-4 text-sm">No direct referrals</TableCell></TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+
+        <div>
+          <h4 className="text-sm font-semibold mb-2">
+            Commission history ({earned.length}) · Basis ${totalStakeBasis.toFixed(2)}
+          </h4>
+          <div className="rounded-lg border border-border overflow-hidden max-h-64 overflow-y-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>From referee</TableHead>
+                  <TableHead className="text-right">Basis</TableHead>
+                  <TableHead className="text-right">Commission</TableHead>
+                  <TableHead>Date</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {earned.map((c) => {
+                  const re = byId.get(c.referee_id);
+                  return (
+                    <TableRow key={c.id}>
+                      <TableCell>
+                        <div className="text-sm">{re?.full_name || "—"}</div>
+                        <div className="text-xs text-muted-foreground">{re?.email}</div>
+                      </TableCell>
+                      <TableCell className="text-right">${Number(c.stake_amount).toFixed(2)}</TableCell>
+                      <TableCell className="text-right text-success font-medium">${Number(c.commission_amount).toFixed(2)}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground">{format(new Date(c.created_at), "MMM d, HH:mm")}</TableCell>
+                    </TableRow>
+                  );
+                })}
+                {earned.length === 0 && (
+                  <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-4 text-sm">No commissions yet</TableCell></TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+
+        {paidToReferrer.length > 0 && (
+          <div>
+            <h4 className="text-sm font-semibold mb-2">Generated for upline ({paidToReferrer.length})</h4>
+            <div className="rounded-lg border border-border overflow-hidden max-h-48 overflow-y-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>To referrer</TableHead>
+                    <TableHead className="text-right">Commission</TableHead>
+                    <TableHead>Date</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paidToReferrer.map((c) => {
+                    const rr = byId.get(c.referrer_id);
+                    return (
+                      <TableRow key={c.id}>
+                        <TableCell>
+                          <div className="text-sm">{rr?.full_name || "—"}</div>
+                          <div className="text-xs text-muted-foreground">{rr?.email}</div>
+                        </TableCell>
+                        <TableCell className="text-right text-success">${Number(c.commission_amount).toFixed(2)}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground">{format(new Date(c.created_at), "MMM d, HH:mm")}</TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
 
 export function AdminReferrals() {
   const [search, setSearch] = useState("");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin-referrals"],
@@ -142,6 +330,8 @@ export function AdminReferrals() {
     return roots.filter(match);
   }, [roots, search]);
 
+  const selectedNode = selectedId ? byId.get(selectedId) : null;
+
   if (isLoading) {
     return <div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   }
@@ -175,11 +365,12 @@ export function AdminReferrals() {
                   <TableHead className="text-right">Direct</TableHead>
                   <TableHead className="text-right">Total Downline</TableHead>
                   <TableHead className="text-right">Commissions</TableHead>
+                  <TableHead></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {ranked.slice(0, 15).map((n) => (
-                  <TableRow key={n.id}>
+                  <TableRow key={n.id} className="cursor-pointer" onClick={() => setSelectedId(n.id)}>
                     <TableCell>
                       <div className="text-sm font-medium">{n.full_name || "—"}</div>
                       <div className="text-xs text-muted-foreground">{n.email}</div>
@@ -188,10 +379,11 @@ export function AdminReferrals() {
                     <TableCell className="text-right">{n.children.length}</TableCell>
                     <TableCell className="text-right">{n.totalDownline}</TableCell>
                     <TableCell className="text-right text-success font-medium">${n.commissionsEarned.toFixed(2)}</TableCell>
+                    <TableCell><Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); setSelectedId(n.id); }}><ExternalLink className="h-3 w-3" /></Button></TableCell>
                   </TableRow>
                 ))}
                 {ranked.length === 0 && (
-                  <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">No referrers yet</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">No referrers yet</TableCell></TableRow>
                 )}
               </TableBody>
             </Table>
@@ -210,6 +402,7 @@ export function AdminReferrals() {
           />
         </CardHeader>
         <CardContent>
+          <p className="text-xs text-muted-foreground mb-2">Click a user's name to open the drill-down panel.</p>
           <div className="flex items-center gap-2 px-2 py-2 text-xs font-medium text-muted-foreground border-b border-border">
             <div className="w-6"></div>
             <div className="flex-1">User</div>
@@ -219,7 +412,7 @@ export function AdminReferrals() {
             <div className="w-24 text-right">Commissions</div>
           </div>
           <div className="max-h-[500px] overflow-y-auto">
-            {filteredRoots.map((r) => <TreeRow key={r.id} node={r} />)}
+            {filteredRoots.map((r) => <TreeRow key={r.id} node={r} onSelect={setSelectedId} />)}
             {filteredRoots.length === 0 && (
               <div className="text-center text-muted-foreground py-8 text-sm">No users found</div>
             )}
@@ -247,8 +440,14 @@ export function AdminReferrals() {
                   const re = byId.get(c.referee_id);
                   return (
                     <TableRow key={c.id}>
-                      <TableCell><div className="text-sm">{rr?.full_name || "—"}</div><div className="text-xs text-muted-foreground">{rr?.email}</div></TableCell>
-                      <TableCell><div className="text-sm">{re?.full_name || "—"}</div><div className="text-xs text-muted-foreground">{re?.email}</div></TableCell>
+                      <TableCell className="cursor-pointer hover:text-primary" onClick={() => rr && setSelectedId(rr.id)}>
+                        <div className="text-sm">{rr?.full_name || "—"}</div>
+                        <div className="text-xs text-muted-foreground">{rr?.email}</div>
+                      </TableCell>
+                      <TableCell className="cursor-pointer hover:text-primary" onClick={() => re && setSelectedId(re.id)}>
+                        <div className="text-sm">{re?.full_name || "—"}</div>
+                        <div className="text-xs text-muted-foreground">{re?.email}</div>
+                      </TableCell>
                       <TableCell className="text-right">${Number(c.stake_amount).toFixed(2)}</TableCell>
                       <TableCell className="text-right text-success font-medium">${Number(c.commission_amount).toFixed(2)}</TableCell>
                       <TableCell className="text-xs text-muted-foreground">{format(new Date(c.created_at), "MMM d, HH:mm")}</TableCell>
@@ -263,6 +462,16 @@ export function AdminReferrals() {
           </div>
         </CardContent>
       </Card>
+
+      {selectedNode && (
+        <UserDetailPanel
+          node={selectedNode}
+          byId={byId}
+          commissions={data?.commissions || []}
+          onSelect={setSelectedId}
+          onClose={() => setSelectedId(null)}
+        />
+      )}
     </div>
   );
 }
