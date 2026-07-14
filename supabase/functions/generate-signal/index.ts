@@ -37,7 +37,7 @@ Deno.serve(async (req) => {
     const template = TEMPLATES[Math.floor(Math.random() * TEMPLATES.length)];
     const message = template.replace("{pair}", choice.pair).replace("{dir}", direction.toLowerCase());
 
-    const closesAt = new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString();
+    const closesAt = new Date(Date.now() + 2 * 60 * 1000).toISOString();
 
     const { data, error } = await supabase
       .from("signals")
