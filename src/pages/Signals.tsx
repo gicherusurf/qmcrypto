@@ -258,6 +258,14 @@ function SignalBubble({
                 onChange={(e) => setStake(e.target.value)}
                 disabled={busy}
               />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setStake(balance.toFixed(2))}
+                disabled={busy || balance <= 0}
+              >
+                Max
+              </Button>
               <Button onClick={handleTake} disabled={busy} variant="hero">
                 {busy ? "Opening..." : "Take Signal"}
               </Button>
