@@ -1,3 +1,4 @@
+
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
@@ -59,8 +60,7 @@ export default function Signals() {
         .order("created_at", { ascending: false })
         .limit(50);
       if (error) throw error;
-      return ((data ?? []) as SignalRow[]).slice().reverse();
-    },
+return (data ?? []) as SignalRow[];    },
     refetchInterval: 15000,
     refetchOnWindowFocus: true,
   });
@@ -278,3 +278,7 @@ function SignalBubble({
     </div>
   );
 }
+import Countdown from "@/components/signals/Countdown";
+import ProgressBar from "@/components/signals/ProgressBar";
+import NewBadge from "@/components/signals/NewBadge";
+import LiveBadge from "@/components/signals/LiveBadge";
