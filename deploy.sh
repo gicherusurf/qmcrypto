@@ -1,0 +1,18 @@
+#!/bin/bash
+set -e
+
+cd ~/htdocs/qmcrypto
+
+echo "Pulling latest code..."
+git pull origin main
+
+echo "Installing dependencies..."
+npm install
+
+echo "Building..."
+npm run build
+
+echo "Deploying..."
+rsync -av --delete --exclude='.well-known' dist/ ~/htdocs/qmprofits.com/
+
+echo "Done!"
