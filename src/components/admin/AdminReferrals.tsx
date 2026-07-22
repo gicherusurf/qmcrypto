@@ -176,6 +176,7 @@ function UserDetailPanel({
         <div>
           <h4 className="text-sm font-semibold mb-2">Direct referrals ({node.children.length})</h4>
           <div className="rounded-lg border border-border overflow-hidden">
+            <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -210,6 +211,7 @@ function UserDetailPanel({
                 )}
               </TableBody>
             </Table>
+            </div>
           </div>
         </div>
 
@@ -218,6 +220,7 @@ function UserDetailPanel({
             Commission history ({earned.length}) · Basis ${totalStakeBasis.toFixed(2)}
           </h4>
           <div className="rounded-lg border border-border overflow-hidden max-h-64 overflow-y-auto">
+            <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -247,6 +250,7 @@ function UserDetailPanel({
                 )}
               </TableBody>
             </Table>
+            </div>
           </div>
         </div>
 
@@ -254,6 +258,7 @@ function UserDetailPanel({
           <div>
             <h4 className="text-sm font-semibold mb-2">Generated for upline ({paidToReferrer.length})</h4>
             <div className="rounded-lg border border-border overflow-hidden max-h-48 overflow-y-auto">
+              <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -278,6 +283,7 @@ function UserDetailPanel({
                   })}
                 </TableBody>
               </Table>
+              </div>
             </div>
           </div>
         )}

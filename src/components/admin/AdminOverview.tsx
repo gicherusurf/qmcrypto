@@ -5,42 +5,10 @@ import { Loader2, Users, DollarSign, ArrowUpRight, Radio, Gift, TrendingUp } fro
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { StatCard } from "@/components/admin/StatCard";
 
 type ProfileLite = { full_name: string | null; email: string | null } | null;
 
-function StatCard({
-  icon: Icon,
-  label,
-  value,
-  tone = "primary",
-}: {
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  value: string | number;
-  tone?: "primary" | "success" | "warning" | "info";
-}) {
-  const tones: Record<string, string> = {
-    primary: "bg-primary/10 text-primary",
-    success: "bg-success/10 text-success",
-    warning: "bg-yellow-500/10 text-yellow-400",
-    info: "bg-blue-500/10 text-blue-400",
-  };
-  return (
-    <Card className="glass-card">
-      <CardContent className="pt-6">
-        <div className="flex items-center gap-4">
-          <div className={`p-3 rounded-full ${tones[tone]}`}>
-            <Icon className="h-6 w-6" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-sm text-muted-foreground truncate">{label}</p>
-            <p className="text-2xl font-display font-bold truncate">{value}</p>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
 
 export function AdminOverview() {
   const { data, isLoading } = useQuery({
@@ -167,7 +135,8 @@ export function AdminOverview() {
         <Card className="glass-card">
           <CardHeader><CardTitle>Recent Users</CardTitle></CardHeader>
           <CardContent>
-            <Table>
+            <div className="overflow-x-auto">
+              <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>User</TableHead>
@@ -192,14 +161,16 @@ export function AdminOverview() {
                   <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground">No users yet</TableCell></TableRow>
                 )}
               </TableBody>
-            </Table>
+              </Table>
+            </div>
           </CardContent>
         </Card>
 
         <Card className="glass-card">
           <CardHeader><CardTitle>Recent Deposits</CardTitle></CardHeader>
           <CardContent>
-            <Table>
+            <div className="overflow-x-auto">
+              <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>User</TableHead>
@@ -229,14 +200,16 @@ export function AdminOverview() {
                   <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground">No deposits yet</TableCell></TableRow>
                 )}
               </TableBody>
-            </Table>
+              </Table>
+            </div>
           </CardContent>
         </Card>
 
         <Card className="glass-card">
           <CardHeader><CardTitle>Recent Withdrawal Requests</CardTitle></CardHeader>
           <CardContent>
-            <Table>
+            <div className="overflow-x-auto">
+              <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>User</TableHead>
@@ -262,14 +235,16 @@ export function AdminOverview() {
                   <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground">No withdrawals yet</TableCell></TableRow>
                 )}
               </TableBody>
-            </Table>
+              </Table>
+            </div>
           </CardContent>
         </Card>
 
         <Card className="glass-card">
           <CardHeader><CardTitle>Recent Signals Taken</CardTitle></CardHeader>
           <CardContent>
-            <Table>
+            <div className="overflow-x-auto">
+              <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>User</TableHead>
@@ -301,14 +276,16 @@ export function AdminOverview() {
                   <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground">No signals taken yet</TableCell></TableRow>
                 )}
               </TableBody>
-            </Table>
+              </Table>
+            </div>
           </CardContent>
         </Card>
 
         <Card className="glass-card xl:col-span-2">
           <CardHeader><CardTitle>Recent Referral Commissions</CardTitle></CardHeader>
           <CardContent>
-            <Table>
+            <div className="overflow-x-auto">
+              <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Referrer</TableHead>
@@ -344,7 +321,8 @@ export function AdminOverview() {
                   <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground">No referral commissions yet</TableCell></TableRow>
                 )}
               </TableBody>
-            </Table>
+              </Table>
+            </div>
           </CardContent>
         </Card>
       </div>

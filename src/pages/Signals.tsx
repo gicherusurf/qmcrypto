@@ -1,5 +1,4 @@
-
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,10 +12,12 @@ import { toast } from "@/hooks/use-toast";
 import { useRealtimeProfile } from "@/hooks/use-realtime-profile";
 import { Radio, TrendingUp, TrendingDown, Bot, Clock, CheckCircle2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import Countdown from "@/components/signals/Countdown";
-import ProgressBar from "@/components/signals/ProgressBar";
-import NewBadge from "@/components/signals/NewBadge";
-import LiveBadge from "@/components/signals/LiveBadge";
+import { Countdown } from "@/components/signals/Countdown";
+import { ProgressBar } from "@/components/signals/ProgressBar";
+import { NewBadge } from "@/components/signals/NewBadge";
+import { LiveBadge } from "@/components/signals/LiveBadge";
+import { BigCountdown } from "@/components/signals/BigCountdown";
+import { useCryptoPrices } from "@/hooks/use-crypto-prices";
 
 interface SignalRow {
   id: string;
@@ -42,18 +43,11 @@ interface TakeRow {
 export default function Signals() {
   const { user, profile, loading } = useAuth();
   const navigate = useNavigate();
-  const bottomRef = useRef<HTMLDivElement>(null);
   useRealtimeProfile();
 
   useEffect(() => {
     if (!loading && !user) navigate("/auth");
   }, [user, loading, navigate]);
-
-  const [, setTick] = useState(0);
-  useEffect(() => {
-    const i = setInterval(() => setTick((t) => t + 1), 1000);
-    return () => clearInterval(i);
-  }, []);
 
   const { data: signals, refetch: refetchSignals } = useQuery({
     queryKey: ["signals"],
@@ -64,7 +58,9 @@ export default function Signals() {
         .order("created_at", { ascending: false })
         .limit(50);
       if (error) throw error;
-return (data ?? []) as SignalRow[];    },
+      // Newest signals first — do not reverse.
+      return (data ?? []) as SignalRow[];
+    },
     refetchInterval: 15000,
     refetchOnWindowFocus: true,
   });
@@ -83,15 +79,13 @@ return (data ?? []) as SignalRow[];    },
     enabled: !!profile?.id,
   });
 
+  const { data: prices } = useCryptoPrices();
+
   const takesById = useMemo(() => {
     const m = new Map<string, TakeRow>();
     (takes || []).forEach((t) => m.set(t.signal_id, t));
     return m;
   }, [takes]);
-
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [signals, takes]);
 
   if (loading || !profile) {
     return (
@@ -105,7 +99,7 @@ return (data ?? []) as SignalRow[];    },
     <div className="min-h-screen bg-background">
       <Navbar />
       <main className="container mx-auto px-4 pt-24 pb-12 max-w-3xl">
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-6 flex items-center justify-between flex-wrap gap-3">
           <div>
             <h1 className="font-display text-2xl font-bold flex items-center gap-2">
               <Bot className="h-6 w-6 text-primary" /> Signal Bot
@@ -118,8 +112,12 @@ return (data ?? []) as SignalRow[];    },
           </div>
         </div>
 
+        <div className="mb-6">
+          <BigCountdown signals={signals} />
+        </div>
+
         <Card className="glass-card">
-          <CardContent className="p-4 space-y-4 max-h-[70vh] overflow-y-auto">
+          <CardContent className="p-3 sm:p-4 space-y-4 max-h-[70vh] overflow-y-auto">
             {!signals?.length ? (
               <div className="text-center py-12 text-muted-foreground">
                 <Radio className="h-10 w-10 mx-auto mb-3 opacity-50" />
@@ -132,6 +130,7 @@ return (data ?? []) as SignalRow[];    },
                   signal={s}
                   take={takesById.get(s.id)}
                   balance={Number(profile.total_balance)}
+                  livePrice={prices?.[s.pair]}
                   onTaken={() => {
                     refetchTakes();
                     refetchSignals();
@@ -139,7 +138,6 @@ return (data ?? []) as SignalRow[];    },
                 />
               ))
             )}
-            <div ref={bottomRef} />
           </CardContent>
         </Card>
       </main>
@@ -151,15 +149,26 @@ function SignalBubble({
   signal,
   take,
   balance,
+  livePrice,
   onTaken,
 }: {
   signal: SignalRow;
   take: TakeRow | undefined;
   balance: number;
+  livePrice: number | undefined;
   onTaken: () => void;
 }) {
   const [stake, setStake] = useState("");
   const [busy, setBusy] = useState(false);
+
+  // Tick every second so `isOpen` (and the LiveBadge it drives) flips to
+  // CLOSED exactly when the signal expires, not just on the 15s refetch.
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => setTick((t) => t + 1), 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   const isOpen = signal.status === "open" && new Date(signal.closes_at) > new Date();
   const longShort = signal.direction === "LONG";
 
@@ -205,15 +214,12 @@ function SignalBubble({
               <Badge variant="outline" className="text-primary border-primary/40">
                 +{Number(signal.profit_percentage).toFixed(1)}%
               </Badge>
+              <NewBadge createdAt={signal.created_at} />
             </div>
-            {isOpen ? (
-              <Badge variant="default" className="gap-1">
-                <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" /> LIVE
-              </Badge>
-            ) : (
-              <Badge variant="outline">CLOSED</Badge>
-            )}
+            <LiveBadge isLive={isOpen} />
           </div>
+
+          <ProgressBar createdAt={signal.created_at} closesAt={signal.closes_at} />
 
           {signal.message && <p className="text-sm">{signal.message}</p>}
 
@@ -221,6 +227,9 @@ function SignalBubble({
             <div className="p-2 rounded bg-background/50">
               <div className="text-muted-foreground">Entry</div>
               <div className="font-mono">{Number(signal.entry_price).toLocaleString()}</div>
+              {livePrice !== undefined && (
+                <div className="text-[10px] text-muted-foreground font-mono">Live {livePrice.toLocaleString()}</div>
+              )}
             </div>
             <div className="p-2 rounded bg-background/50">
               <div className="text-muted-foreground">Target</div>
@@ -228,7 +237,7 @@ function SignalBubble({
             </div>
             <div className="p-2 rounded bg-background/50">
               <div className="text-muted-foreground flex items-center gap-1"><Clock className="h-3 w-3" />Closes</div>
-              <div className="font-mono text-xs"><Countdown closesAt={signal.closes_at} /></div>
+              <Countdown closesAt={signal.closes_at} className="text-xs" />
             </div>
           </div>
 
@@ -252,7 +261,7 @@ function SignalBubble({
               </div>
             </div>
           ) : isOpen ? (
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Input
                 type="number"
                 step="0.01"
@@ -261,16 +270,18 @@ function SignalBubble({
                 value={stake}
                 onChange={(e) => setStake(e.target.value)}
                 disabled={busy}
+                className="flex-1 min-w-[7rem]"
               />
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setStake(balance.toFixed(2))}
                 disabled={busy || balance <= 0}
+                className="shrink-0"
               >
                 Max
               </Button>
-              <Button onClick={handleTake} disabled={busy} variant="hero">
+              <Button onClick={handleTake} disabled={busy} variant="hero" className="shrink-0 w-full sm:w-auto">
                 {busy ? "Opening..." : "Take Signal"}
               </Button>
             </div>

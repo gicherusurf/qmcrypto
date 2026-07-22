@@ -1,49 +1,64 @@
 import { useEffect, useState } from "react";
-import { Clock } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface CountdownProps {
   closesAt: string;
+  className?: string;
 }
 
-export default function Countdown({ closesAt }: CountdownProps) {
-  const [, forceUpdate] = useState(0);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      forceUpdate((n) => n + 1);
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
-
-  const now = Date.now();
-  const end = new Date(closesAt).getTime();
-
-  const diff = end - now;
-
-  if (diff <= 0) {
-    return (
-      <div className="flex items-center gap-2 text-red-500 font-semibold">
-        <Clock className="h-4 w-4" />
-        Expired
-      </div>
-    );
-  }
-
-  const totalSeconds = Math.floor(diff / 1000);
-
+function formatRemaining(ms: number): string {
+  if (ms <= 0) return "Expired";
+  const totalSeconds = Math.floor(ms / 1000);
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
+  return `${minutes}m ${seconds.toString().padStart(2, "0")}s`;
+}
 
-  let color = "text-green-500";
+/**
+ * Live countdown to `closesAt`.
+ * - Green when more than 10 minutes remain
+ * - Orange when under 10 minutes remain
+ * - Red when under 5 minutes remain
+ * - Pulses during the final minute
+ * - Shows "Expired" once the target time has passed
+ */
+export function Countdown({ closesAt, className }: CountdownProps) {
+  const [now, setNow] = useState(() => Date.now());
 
-  if (minutes < 5) color = "text-orange-500";
-  if (minutes < 1) color = "text-red-500 animate-pulse";
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const closesAtMs = new Date(closesAt).getTime();
+  const remainingMs = closesAtMs - now;
+  const isExpired = remainingMs <= 0;
+
+  const remainingMinutes = remainingMs / 60000;
+  const isFinalMinute = !isExpired && remainingMinutes < 1;
+  const isRed = !isExpired && remainingMinutes < 5;
+  const isOrange = !isExpired && remainingMinutes >= 5 && remainingMinutes < 10;
+
+  const colorClass = isExpired
+    ? "text-muted-foreground"
+    : isRed
+    ? "text-destructive"
+    : isOrange
+    ? "text-warning"
+    : "text-success";
 
   return (
-    <div className={`flex items-center gap-2 font-semibold ${color}`}>
-      <Clock className="h-4 w-4" />
-      {minutes}m {seconds}s
-    </div>
+    <span
+      className={cn(
+        "font-mono font-semibold tabular-nums",
+        colorClass,
+        isFinalMinute && "animate-pulse",
+        className
+      )}
+      role="timer"
+      aria-live="polite"
+    >
+      {formatRemaining(remainingMs)}
+    </span>
   );
 }
