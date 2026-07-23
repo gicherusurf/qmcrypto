@@ -401,6 +401,17 @@ export type Database = {
       }
       complete_withdrawal: { Args: { _id: string }; Returns: undefined }
       get_user_profile_id: { Args: never; Returns: string }
+      get_my_referral_stats: {
+        Args: never
+        Returns: {
+          total_referrals: number
+          deposited_referrals: number
+          daily_signal_limit: number
+          signup_bonus_earned: number
+          signal_commission_earned: number
+          total_referral_earnings: number
+        }[]
+      }
       get_my_signal_quota: {
         Args: never
         Returns: {
