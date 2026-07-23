@@ -18,6 +18,8 @@ import { NewBadge } from "@/components/signals/NewBadge";
 import { LiveBadge } from "@/components/signals/LiveBadge";
 import { BigCountdown } from "@/components/signals/BigCountdown";
 import { useCryptoPrices } from "@/hooks/use-crypto-prices";
+import { useSignalQuota, nextTierInfo, type SignalQuota } from "@/hooks/use-signal-quota";
+import { Lock } from "lucide-react";
 
 interface SignalRow {
   id: string;
@@ -80,6 +82,7 @@ export default function Signals() {
   });
 
   const { data: prices } = useCryptoPrices();
+  const { data: quota, refetch: refetchQuota } = useSignalQuota();
 
   const takesById = useMemo(() => {
     const m = new Map<string, TakeRow>();
@@ -109,6 +112,11 @@ export default function Signals() {
           <div className="text-right">
             <div className="text-xs text-muted-foreground">Available</div>
             <div className="font-display font-bold text-lg text-primary">${Number(profile.total_balance).toFixed(2)}</div>
+            {quota && (
+              <div className="text-[11px] text-muted-foreground mt-0.5">
+                Signals today: {quota.taken_today}/{quota.daily_limit}
+              </div>
+            )}
           </div>
         </div>
 
@@ -131,9 +139,11 @@ export default function Signals() {
                   take={takesById.get(s.id)}
                   balance={Number(profile.total_balance)}
                   livePrice={prices?.[s.pair]}
+                  quota={quota}
                   onTaken={() => {
                     refetchTakes();
                     refetchSignals();
+                    refetchQuota();
                   }}
                 />
               ))
@@ -150,12 +160,14 @@ function SignalBubble({
   take,
   balance,
   livePrice,
+  quota,
   onTaken,
 }: {
   signal: SignalRow;
   take: TakeRow | undefined;
   balance: number;
   livePrice: number | undefined;
+  quota: SignalQuota | undefined | null;
   onTaken: () => void;
 }) {
   const [stake, setStake] = useState("");
@@ -258,6 +270,25 @@ function SignalBubble({
                 ) : (
                   <div className="text-xs text-muted-foreground">Awaiting close</div>
                 )}
+              </div>
+            </div>
+          ) : isOpen && quota && quota.taken_today >= quota.daily_limit ? (
+            <div className="p-3 rounded-lg bg-warning/10 border border-warning/30 flex items-start gap-2">
+              <Lock className="h-4 w-4 text-warning shrink-0 mt-0.5" />
+              <div className="text-xs">
+                <div className="font-medium text-warning">
+                  Daily limit reached ({quota.taken_today}/{quota.daily_limit} signals)
+                </div>
+                {(() => {
+                  const next = nextTierInfo(quota.referral_count);
+                  return next ? (
+                    <div className="text-muted-foreground mt-0.5">
+                      Refer {next.needed} more {next.needed === 1 ? "person" : "people"} to unlock {next.unlocksLimit} signals/day.
+                    </div>
+                  ) : (
+                    <div className="text-muted-foreground mt-0.5">You're on the top tier — 6 signals/day.</div>
+                  );
+                })()}
               </div>
             </div>
           ) : isOpen ? (
