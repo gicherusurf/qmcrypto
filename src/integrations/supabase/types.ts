@@ -401,6 +401,10 @@ export type Database = {
       }
       complete_withdrawal: { Args: { _id: string }; Returns: undefined }
       get_user_profile_id: { Args: never; Returns: string }
+      set_user_role: {
+        Args: { _target_user_id: string; _role: string }
+        Returns: undefined
+      }
       get_my_referral_stats: {
         Args: never
         Returns: {
@@ -441,7 +445,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "user"
+      app_role: "admin" | "user" | "moderator"
     }
     CompositeTypes: {
       [_ in never]: never

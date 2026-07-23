@@ -14,63 +14,76 @@ import { AdminDepositsHistory } from "@/components/admin/AdminDepositsHistory";
 import { AdminReferrals } from "@/components/admin/AdminReferrals";
 
 export default function Admin() {
-  const { user, isAdmin, loading } = useAuth();
+  const { user, isAdmin, isModerator, loading } = useAuth();
   const navigate = useNavigate();
+  const hasAccess = isAdmin || isModerator;
 
   useEffect(() => {
-    if (!loading && (!user || !isAdmin)) navigate("/dashboard");
-  }, [user, isAdmin, loading, navigate]);
+    if (!loading && (!user || !hasAccess)) navigate("/dashboard");
+  }, [user, hasAccess, loading, navigate]);
 
   if (loading) {
     return <div className="min-h-screen bg-background flex items-center justify-center"><div className="animate-pulse text-primary">Loading...</div></div>;
   }
-  if (!isAdmin) return null;
+  if (!hasAccess) return null;
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       <main className="container mx-auto px-4 pt-24 pb-12">
         <div className="mb-8 animate-fade-in">
-          <h1 className="font-display text-3xl font-bold mb-2"><span className="gradient-text">Admin Panel</span></h1>
-          <p className="text-muted-foreground">Manage deposits, signals, withdrawals, and platform settings</p>
+          <h1 className="font-display text-3xl font-bold mb-2"><span className="gradient-text">{isAdmin ? "Admin Panel" : "Moderator Panel"}</span></h1>
+          <p className="text-muted-foreground">
+            {isAdmin ? "Manage deposits, signals, withdrawals, and platform settings" : "Manage deposits and withdrawals"}
+          </p>
         </div>
 
-        <Tabs defaultValue="overview" className="space-y-6">
+        <Tabs defaultValue={isAdmin ? "overview" : "deposits"} className="space-y-6">
           <TabsList className="bg-secondary/50 border border-border flex-wrap h-auto gap-1 p-1">
-            <TabsTrigger value="overview" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
-              <LayoutDashboard className="h-3 w-3 sm:h-4 sm:w-4" /><span>Overview</span>
-            </TabsTrigger>
+            {isAdmin && (
+              <TabsTrigger value="overview" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
+                <LayoutDashboard className="h-3 w-3 sm:h-4 sm:w-4" /><span>Overview</span>
+              </TabsTrigger>
+            )}
             <TabsTrigger value="deposits" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
               <DollarSign className="h-3 w-3 sm:h-4 sm:w-4" /><span>Deposits</span>
             </TabsTrigger>
             <TabsTrigger value="deposits-history" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
               <History className="h-3 w-3 sm:h-4 sm:w-4" /><span>Dep. History</span>
             </TabsTrigger>
-            <TabsTrigger value="referrals" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
-              <Gift className="h-3 w-3 sm:h-4 sm:w-4" /><span>Referrals</span>
-            </TabsTrigger>
-            <TabsTrigger value="signals" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
-              <Radio className="h-3 w-3 sm:h-4 sm:w-4" /><span>Signals</span>
-            </TabsTrigger>
+            {isAdmin && (
+              <TabsTrigger value="referrals" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
+                <Gift className="h-3 w-3 sm:h-4 sm:w-4" /><span>Referrals</span>
+              </TabsTrigger>
+            )}
+            {isAdmin && (
+              <TabsTrigger value="signals" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
+                <Radio className="h-3 w-3 sm:h-4 sm:w-4" /><span>Signals</span>
+              </TabsTrigger>
+            )}
             <TabsTrigger value="withdrawals" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
               <ArrowUpRight className="h-3 w-3 sm:h-4 sm:w-4" /><span>Withdrawals</span>
             </TabsTrigger>
-            <TabsTrigger value="users" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
-              <Users className="h-3 w-3 sm:h-4 sm:w-4" /><span>Users</span>
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
-              <Settings className="h-3 w-3 sm:h-4 sm:w-4" /><span>Settings</span>
-            </TabsTrigger>
+            {isAdmin && (
+              <TabsTrigger value="users" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
+                <Users className="h-3 w-3 sm:h-4 sm:w-4" /><span>Users</span>
+              </TabsTrigger>
+            )}
+            {isAdmin && (
+              <TabsTrigger value="settings" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
+                <Settings className="h-3 w-3 sm:h-4 sm:w-4" /><span>Settings</span>
+              </TabsTrigger>
+            )}
           </TabsList>
 
-          <TabsContent value="overview"><AdminOverview /></TabsContent>
+          {isAdmin && <TabsContent value="overview"><AdminOverview /></TabsContent>}
           <TabsContent value="deposits"><AdminDeposits /></TabsContent>
           <TabsContent value="deposits-history"><AdminDepositsHistory /></TabsContent>
-          <TabsContent value="referrals"><AdminReferrals /></TabsContent>
-          <TabsContent value="signals"><AdminSignals /></TabsContent>
+          {isAdmin && <TabsContent value="referrals"><AdminReferrals /></TabsContent>}
+          {isAdmin && <TabsContent value="signals"><AdminSignals /></TabsContent>}
           <TabsContent value="withdrawals"><AdminWithdrawals /></TabsContent>
-          <TabsContent value="users"><AdminUsers /></TabsContent>
-          <TabsContent value="settings"><AdminSettings /></TabsContent>
+          {isAdmin && <TabsContent value="users"><AdminUsers /></TabsContent>}
+          {isAdmin && <TabsContent value="settings"><AdminSettings /></TabsContent>}
         </Tabs>
       </main>
     </div>

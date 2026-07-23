@@ -3,11 +3,24 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Loader2, Check, X } from "lucide-react";
+import { Loader2, Check, X, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+
+function explorerUrl(currency: string, txHash: string): string | null {
+  switch (currency) {
+    case "BTC":
+      return `https://blockstream.info/tx/${txHash}`;
+    case "USDT_ERC20":
+      return `https://etherscan.io/tx/${txHash}`;
+    case "USDT_TRC20":
+      return `https://tronscan.org/#/transaction/${txHash}`;
+    default:
+      return null;
+  }
+}
 
 export function AdminDeposits() {
   const { toast } = useToast();
@@ -81,7 +94,22 @@ export function AdminDeposits() {
                       </TableCell>
                       <TableCell>${Number(d.amount_usd).toFixed(2)}</TableCell>
                       <TableCell><Badge variant="outline">{d.crypto_currency}</Badge></TableCell>
-                      <TableCell><code className="text-xs">{d.tx_hash?.slice(0, 14)}...</code></TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1.5">
+                          <code className="text-xs">{d.tx_hash?.slice(0, 14)}...</code>
+                          {d.tx_hash && explorerUrl(d.crypto_currency, d.tx_hash) && (
+                            <a
+                              href={explorerUrl(d.crypto_currency, d.tx_hash)!}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-primary hover:text-primary/80"
+                              title="View on block explorer"
+                            >
+                              <ExternalLink className="h-3.5 w-3.5" />
+                            </a>
+                          )}
+                        </div>
+                      </TableCell>
                       <TableCell>
                         <Badge variant={d.status === "approved" ? "default" : d.status === "rejected" ? "destructive" : "secondary"}>
                           {d.status}

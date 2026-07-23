@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Loader2, Users, DollarSign, ArrowUpRight, Radio, Gift, TrendingUp } from "lucide-react";
+import { Loader2, Users, DollarSign, ArrowUpRight, Radio, Gift, TrendingUp, Landmark, Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -30,6 +30,7 @@ export function AdminOverview() {
         recentTakes,
         recentReferrals,
         recentUsers,
+        allBalancesRes,
       ] = await Promise.all([
         supabase.from("profiles").select("*", { count: "exact", head: true }),
         supabase.from("deposits").select("amount_usd"),
@@ -66,23 +67,31 @@ export function AdminOverview() {
           .select("id, full_name, email, created_at, total_balance, withdrawable_balance")
           .order("created_at", { ascending: false })
           .limit(5),
+        supabase.from("profiles").select("total_balance"),
       ]);
 
-      const sum = (rows: { amount_usd?: number | string; amount?: number | string; commission_amount?: number | string; stake_amount?: number | string; profit_amount?: number | string; net_amount?: number | string }[] | null | undefined, key: string) =>
+      const sum = (rows: { amount_usd?: number | string; amount?: number | string; commission_amount?: number | string; stake_amount?: number | string; profit_amount?: number | string; net_amount?: number | string; total_balance?: number | string }[] | null | undefined, key: string) =>
         (rows || []).reduce((s, r) => s + Number((r as Record<string, unknown>)[key] ?? 0), 0);
 
       const openSignals = (signalsRes.data || []).filter((s) => s.status === "open").length;
+      const approvedDeposits = sum(depositsApprRes.data, "amount_usd");
+      const withdrawalsPaidNet = sum(withdrawalsCompRes.data, "net_amount");
+      const sumUserBalances = sum(allBalancesRes.data, "total_balance");
 
       return {
         totalUsers: usersRes.count || 0,
+        bank: {
+          netReal: approvedDeposits - withdrawalsPaidNet,
+          totalUserBalances: sumUserBalances,
+        },
         deposits: {
           total: sum(depositsAllRes.data, "amount_usd"),
-          approved: sum(depositsApprRes.data, "amount_usd"),
+          approved: approvedDeposits,
           pendingCount: depositsPendRes.count || 0,
         },
         withdrawals: {
           totalRequested: sum(withdrawalsAllRes.data, "amount"),
-          completedNet: sum(withdrawalsCompRes.data, "net_amount"),
+          completedNet: withdrawalsPaidNet,
           pendingCount: withdrawalsPendRes.count || 0,
         },
         referrals: {
@@ -116,6 +125,11 @@ export function AdminOverview() {
 
   return (
     <div className="space-y-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <StatCard icon={Landmark} label="Total in Bank (Real Funds)" value={`$${data.bank.netReal.toFixed(2)}`} tone="success" />
+        <StatCard icon={Wallet} label="Total User Balances (Liability)" value={`$${data.bank.totalUserBalances.toFixed(2)}`} tone="warning" />
+      </div>
+
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         <StatCard icon={Users} label="Total Users" value={data.totalUsers} tone="primary" />
         <StatCard icon={DollarSign} label="Approved Deposits" value={`$${data.deposits.approved.toFixed(2)}`} tone="success" />

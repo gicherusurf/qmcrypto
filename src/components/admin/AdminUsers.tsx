@@ -3,13 +3,20 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Loader2, Users, DollarSign, Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+
+type UserRoleName = "user" | "moderator" | "admin";
 
 export function AdminUsers() {
   const [search, setSearch] = useState("");
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const { toast } = useToast();
+  const qc = useQueryClient();
 
   const { data: users, isLoading } = useQuery({
     queryKey: ["admin-users"],
@@ -17,10 +24,11 @@ export function AdminUsers() {
       const { data: profiles, error } = await supabase.from("profiles").select("*").order("created_at", { ascending: false });
       if (error) throw error;
       const { data: roles } = await supabase.from("user_roles").select("user_id, role");
-      return profiles?.map((p) => ({
-        ...p,
-        isAdmin: roles?.some((r) => r.user_id === p.user_id && r.role === "admin") || false,
-      })) || [];
+      return profiles?.map((p) => {
+        const roleRow = roles?.find((r) => r.user_id === p.user_id);
+        const role: UserRoleName = (roleRow?.role as UserRoleName) || "user";
+        return { ...p, role };
+      }) || [];
     },
   });
 
@@ -37,6 +45,24 @@ export function AdminUsers() {
   const filtered = users?.filter((u) =>
     u.email?.toLowerCase().includes(search.toLowerCase()) || u.full_name?.toLowerCase().includes(search.toLowerCase())
   );
+
+  const changeRole = async (targetUserId: string, role: UserRoleName) => {
+    setUpdatingId(targetUserId);
+    try {
+      const { error } = await supabase.rpc("set_user_role", { _target_user_id: targetUserId, _role: role });
+      if (error) throw error;
+      toast({ title: "Role updated", description: `User is now ${role}` });
+      qc.invalidateQueries({ queryKey: ["admin-users"] });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Failed to update role";
+      toast({ title: "Error", description: msg, variant: "destructive" });
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const roleBadgeVariant = (role: UserRoleName) =>
+    role === "admin" ? "default" : role === "moderator" ? "secondary" : "outline";
 
   return (
     <div className="space-y-6">
@@ -89,7 +115,25 @@ export function AdminUsers() {
                       <TableCell className="flex items-center gap-1"><Wallet className="h-3 w-3 text-muted-foreground" />${Number(u.total_balance).toFixed(2)}</TableCell>
                       <TableCell className="text-success">${Number(u.total_earnings).toFixed(2)}</TableCell>
                       <TableCell>${Number(u.total_withdrawn).toFixed(2)}</TableCell>
-                      <TableCell><Badge variant={u.isAdmin ? "default" : "secondary"}>{u.isAdmin ? "Admin" : "User"}</Badge></TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Badge variant={roleBadgeVariant(u.role)} className="capitalize">{u.role}</Badge>
+                          <Select
+                            value={u.role}
+                            disabled={updatingId === u.user_id}
+                            onValueChange={(value) => changeRole(u.user_id, value as UserRoleName)}
+                          >
+                            <SelectTrigger className="h-7 w-[110px] text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="user">User</SelectItem>
+                              <SelectItem value="moderator">Moderator</SelectItem>
+                              <SelectItem value="admin">Admin</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </TableCell>
                       <TableCell className="text-muted-foreground text-xs">{u.created_at ? format(new Date(u.created_at), "MMM d, yyyy") : "—"}</TableCell>
                     </TableRow>
                   ))}

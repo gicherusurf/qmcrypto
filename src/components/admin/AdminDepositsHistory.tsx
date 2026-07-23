@@ -2,11 +2,24 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Loader2, DollarSign, CheckCircle2, Clock, XCircle } from "lucide-react";
+import { Loader2, DollarSign, CheckCircle2, Clock, XCircle, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { useMemo, useState } from "react";
+
+function explorerUrl(currency: string, txHash: string): string | null {
+  switch (currency) {
+    case "BTC":
+      return `https://blockstream.info/tx/${txHash}`;
+    case "USDT_ERC20":
+      return `https://etherscan.io/tx/${txHash}`;
+    case "USDT_TRC20":
+      return `https://tronscan.org/#/transaction/${txHash}`;
+    default:
+      return null;
+  }
+}
 
 type ProfileLite = { full_name: string | null; email: string | null } | null;
 
@@ -129,8 +142,21 @@ export function AdminDepositsHistory() {
                       <TableCell className="text-xs">
                         <div>{Number(d.crypto_amount || 0)} {d.crypto_currency}</div>
                       </TableCell>
-                      <TableCell className="text-xs font-mono max-w-[140px] truncate" title={d.tx_hash || ""}>
-                        {d.tx_hash || "—"}
+                      <TableCell className="text-xs font-mono max-w-[140px]" title={d.tx_hash || ""}>
+                        <div className="flex items-center gap-1.5">
+                          <span className="truncate">{d.tx_hash || "—"}</span>
+                          {d.tx_hash && explorerUrl(d.crypto_currency, d.tx_hash) && (
+                            <a
+                              href={explorerUrl(d.crypto_currency, d.tx_hash)!}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-primary hover:text-primary/80 shrink-0"
+                              title="View on block explorer"
+                            >
+                              <ExternalLink className="h-3.5 w-3.5" />
+                            </a>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>
                         <Badge variant={d.status === "approved" ? "default" : d.status === "rejected" ? "destructive" : "secondary"}>

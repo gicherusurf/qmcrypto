@@ -5,7 +5,7 @@ import { LogOut, User, Shield, Menu, X, Radio, History } from "lucide-react";
 import { useState } from "react";
 
 export function Navbar() {
-  const { user, isAdmin, signOut } = useAuth();
+  const { user, isAdmin, isModerator, signOut } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
@@ -31,7 +31,7 @@ export function Navbar() {
                 <Link to="/dashboard"><Button variant="ghost" size="sm"><User className="h-4 w-4 mr-2" />Dashboard</Button></Link>
                 <Link to="/signals"><Button variant="ghost" size="sm"><Radio className="h-4 w-4 mr-2" />Signals</Button></Link>
                 <Link to="/history"><Button variant="ghost" size="sm"><History className="h-4 w-4 mr-2" />History</Button></Link>
-                {isAdmin && <Link to="/admin"><Button variant="ghost" size="sm"><Shield className="h-4 w-4 mr-2" />Admin</Button></Link>}
+                {(isAdmin || isModerator) && <Link to="/admin"><Button variant="ghost" size="sm"><Shield className="h-4 w-4 mr-2" />{isAdmin ? "Admin" : "Moderator"}</Button></Link>}
                 <Button variant="outline" size="sm" onClick={handleSignOut}><LogOut className="h-4 w-4 mr-2" />Sign Out</Button>
               </>
             ) : (
@@ -55,7 +55,7 @@ export function Navbar() {
                   <Link to="/dashboard" onClick={() => setOpen(false)}><Button variant="ghost" className="w-full justify-start"><User className="h-4 w-4 mr-2" />Dashboard</Button></Link>
                   <Link to="/signals" onClick={() => setOpen(false)}><Button variant="ghost" className="w-full justify-start"><Radio className="h-4 w-4 mr-2" />Signals</Button></Link>
                   <Link to="/history" onClick={() => setOpen(false)}><Button variant="ghost" className="w-full justify-start"><History className="h-4 w-4 mr-2" />History</Button></Link>
-                  {isAdmin && <Link to="/admin" onClick={() => setOpen(false)}><Button variant="ghost" className="w-full justify-start"><Shield className="h-4 w-4 mr-2" />Admin</Button></Link>}
+                  {(isAdmin || isModerator) && <Link to="/admin" onClick={() => setOpen(false)}><Button variant="ghost" className="w-full justify-start"><Shield className="h-4 w-4 mr-2" />{isAdmin ? "Admin" : "Moderator"}</Button></Link>}
                   <Button variant="outline" className="w-full justify-start" onClick={handleSignOut}><LogOut className="h-4 w-4 mr-2" />Sign Out</Button>
                 </>
               ) : (
