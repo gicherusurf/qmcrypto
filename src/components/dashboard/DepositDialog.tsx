@@ -6,7 +6,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import { Copy, Wallet, Upload } from "lucide-react";
 
@@ -17,14 +16,12 @@ interface Props {
 }
 
 const currencyOptions = [
-  { value: "BTC", label: "Bitcoin (BTC)", settingKey: "btc_wallet" },
   { value: "USDT_TRC20", label: "USDT (TRC20)", settingKey: "usdt_trc20_wallet" },
-  { value: "USDT_ERC20", label: "USDT (ERC20)", settingKey: "usdt_erc20_wallet" },
 ] as const;
 
 export function DepositDialog({ open, onOpenChange, onSuccess }: Props) {
   const { profile } = useAuth();
-  const [currency, setCurrency] = useState<"BTC" | "USDT_TRC20" | "USDT_ERC20">("USDT_TRC20");
+  const currency = "USDT_TRC20" as const;
   const [amount, setAmount] = useState("");
   const [txHash, setTxHash] = useState("");
   const [proofFile, setProofFile] = useState<File | null>(null);
@@ -102,14 +99,9 @@ export function DepositDialog({ open, onOpenChange, onSuccess }: Props) {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label>Currency</Label>
-            <Select value={currency} onValueChange={(v) => setCurrency(v as typeof currency)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {currencyOptions.map((o) => (
-                  <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex items-center h-10 px-3 rounded-md border border-input bg-muted/30 text-sm">
+              USDT (TRC20)
+            </div>
           </div>
 
           <div className="p-4 rounded-lg bg-muted/40 border border-border space-y-2">

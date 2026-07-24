@@ -9,9 +9,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 
 const FIELDS = [
-  { key: "btc_wallet", label: "Bitcoin Wallet Address" },
   { key: "usdt_trc20_wallet", label: "USDT Wallet (TRC20)" },
-  { key: "usdt_erc20_wallet", label: "USDT Wallet (ERC20)" },
 ];
 
 export function AdminSettings() {
