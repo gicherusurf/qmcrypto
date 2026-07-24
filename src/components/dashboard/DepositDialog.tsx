@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
-import { Copy, Wallet, Upload } from "lucide-react";
+import { Copy, Wallet, Upload, ExternalLink } from "lucide-react";
 
 interface Props {
   open: boolean;
@@ -110,6 +110,14 @@ export function DepositDialog({ open, onOpenChange, onSuccess }: Props) {
               <code className="flex-1 text-xs break-all">{walletAddress || "Loading..."}</code>
               <Button type="button" variant="outline" size="icon" onClick={copy}><Copy className="h-4 w-4" /></Button>
             </div>
+            <a
+              href="https://www.binance.com/en/buy-USDT"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-primary hover:underline inline-flex items-center gap-1"
+            >
+              Don't have USDT? Buy it on Binance <ExternalLink className="h-3 w-3" />
+            </a>
           </div>
 
           <div className="space-y-2">
