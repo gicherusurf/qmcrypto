@@ -112,11 +112,13 @@ export default function Signals() {
           <div className="text-right">
             <div className="text-xs text-muted-foreground">Available</div>
             <div className="font-display font-bold text-lg text-primary">${Number(profile.total_balance).toFixed(2)}</div>
-            {quota && (
+            {quota && quota.subscription_status === "expired" ? (
+              <div className="text-[11px] text-destructive mt-0.5">Subscription expired</div>
+            ) : quota ? (
               <div className="text-[11px] text-muted-foreground mt-0.5">
                 Signals today: {quota.taken_today}/{quota.daily_limit}
               </div>
-            )}
+            ) : null}
           </div>
         </div>
 
@@ -270,6 +272,16 @@ function SignalBubble({
                 ) : (
                   <div className="text-xs text-muted-foreground">Awaiting close</div>
                 )}
+              </div>
+            </div>
+          ) : isOpen && quota && quota.subscription_status === "expired" ? (
+            <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/30 flex items-start gap-2">
+              <Lock className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
+              <div className="text-xs">
+                <div className="font-medium text-destructive">Subscription expired — signals paused</div>
+                <div className="text-muted-foreground mt-0.5">
+                  Renew your $15/30-day subscription from the Dashboard to unlock signals again.
+                </div>
               </div>
             </div>
           ) : isOpen && quota && quota.taken_today >= quota.daily_limit ? (

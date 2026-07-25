@@ -10,6 +10,7 @@ import { WithdrawalDialog } from "@/components/dashboard/WithdrawalDialog";
 import { WithdrawalHistory } from "@/components/dashboard/WithdrawalHistory";
 import { RecentTrades } from "@/components/dashboard/RecentTrades";
 import { ReferralCard } from "@/components/dashboard/ReferralCard";
+import { SubscriptionCard } from "@/components/dashboard/SubscriptionCard";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRealtimeProfile } from "@/hooks/use-realtime-profile";
 
@@ -127,6 +128,7 @@ export default function Dashboard() {
           </Card>
         </div>
 
+        <div className="mb-8"><SubscriptionCard /></div>
         <div className="mb-8"><ReferralCard /></div>
         <div className="mb-8"><RecentTrades /></div>
         <div className="mb-8"><WithdrawalHistory /></div>

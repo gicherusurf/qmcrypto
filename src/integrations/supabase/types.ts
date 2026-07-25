@@ -422,8 +422,21 @@ export type Database = {
           daily_limit: number
           taken_today: number
           referral_count: number
+          subscription_status: string
         }[]
       }
+      get_my_subscription: {
+        Args: never
+        Returns: {
+          status: string
+          started_at: string
+          current_period_end: string
+          auto_renew: boolean
+          withdrawable_balance: number
+        }[]
+      }
+      renew_my_subscription: { Args: never; Returns: string }
+      set_my_auto_renew: { Args: { _enabled: boolean }; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

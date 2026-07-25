@@ -5,6 +5,7 @@ export interface SignalQuota {
   daily_limit: number;
   taken_today: number;
   referral_count: number;
+  subscription_status: "active" | "expired" | null;
 }
 
 /**
