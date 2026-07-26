@@ -7,6 +7,7 @@ interface Profile {
   user_id: string;
   full_name: string | null;
   email: string | null;
+  phone_number: string | null;
   total_balance: number;
   total_earnings: number;
   total_withdrawn: number;
@@ -25,7 +26,7 @@ interface AuthContextType {
   isModerator: boolean;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
-  signUp: (email: string, password: string, fullName: string, bootstrapCode?: string, referralCode?: string) => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string, fullName: string, phoneNumber: string, bootstrapCode?: string, referralCode?: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>
   refreshProfile: () => Promise<void>;
 }
@@ -102,7 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error };
   };
 
-  const signUp = async (email: string, password: string, fullName: string, bootstrapCode?: string, referralCode?: string) => {
+  const signUp = async (email: string, password: string, fullName: string, phoneNumber: string, bootstrapCode?: string, referralCode?: string) => {
     const redirectUrl = `${window.location.origin}/`;
     const { error } = await supabase.auth.signUp({
       email,
@@ -111,6 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         emailRedirectTo: redirectUrl,
         data: {
           full_name: fullName,
+          phone_number: phoneNumber,
           bootstrap_code: (bootstrapCode || "").toUpperCase(),
           referral_code: (referralCode || "").toUpperCase(),
         },

@@ -43,7 +43,7 @@ export function AdminUsers() {
   });
 
   const filtered = users?.filter((u) =>
-    u.email?.toLowerCase().includes(search.toLowerCase()) || u.full_name?.toLowerCase().includes(search.toLowerCase())
+    u.email?.toLowerCase().includes(search.toLowerCase()) || u.full_name?.toLowerCase().includes(search.toLowerCase()) || u.phone_number?.toLowerCase().includes(search.toLowerCase())
   );
 
   const changeRole = async (targetUserId: string, role: UserRoleName) => {
@@ -111,6 +111,7 @@ export function AdminUsers() {
                       <TableCell>
                         <div className="font-medium">{u.full_name || "—"}</div>
                         <div className="text-xs text-muted-foreground">{u.email}</div>
+                        {u.phone_number && <div className="text-xs text-muted-foreground">{u.phone_number}</div>}
                       </TableCell>
                       <TableCell className="flex items-center gap-1"><Wallet className="h-3 w-3 text-muted-foreground" />${Number(u.total_balance).toFixed(2)}</TableCell>
                       <TableCell className="text-success">${Number(u.total_earnings).toFixed(2)}</TableCell>

@@ -3,11 +3,13 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { Navbar } from "@/components/layout/Navbar";
 import { Eye, EyeOff, ArrowRight } from "lucide-react";
 import { z } from "zod";
+import { COUNTRY_DIAL_CODES } from "@/lib/country-dial-codes";
 
 const signInSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -18,6 +20,7 @@ const signUpSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
+  phoneNumber: z.string().min(6, "Enter a valid phone number").regex(/^\d+$/, "Digits only, no spaces or symbols"),
 });
 
 export default function Auth() {
@@ -28,6 +31,8 @@ export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [countryDialCode, setCountryDialCode] = useState("+254");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [bootstrapCode, setBootstrapCode] = useState("");
   const [referralCode, setReferralCode] = useState((searchParams.get("ref") || "").toUpperCase());
 
@@ -40,13 +45,14 @@ export default function Auth() {
     setLoading(true);
     try {
       if (isSignUp) {
-        const result = signUpSchema.safeParse({ fullName, email, password });
+        const result = signUpSchema.safeParse({ fullName, email, password, phoneNumber });
         if (!result.success) {
           toast({ title: "Error", description: result.error.errors[0].message, variant: "destructive" });
           setLoading(false);
           return;
         }
-        const { error } = await signUp(email, password, fullName, bootstrapCode, referralCode);
+        const fullPhoneNumber = `${countryDialCode}${phoneNumber}`;
+        const { error } = await signUp(email, password, fullName, fullPhoneNumber, bootstrapCode, referralCode);
         if (error) {
           toast({ title: "Error", description: error.message, variant: "destructive" });
         } else {
@@ -91,8 +97,39 @@ export default function Auth() {
             <form onSubmit={handleSubmit} className="space-y-4">
               {isSignUp && (
                 <div className="space-y-2">
-                  <Label htmlFor="fullName">Full Name</Label>
+                  <Label htmlFor="fullName">Full Legal Name (as on ID/Passport)</Label>
                   <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="John Doe" required />
+                  <p className="text-xs text-muted-foreground">Must match your government ID or passport exactly for KYC verification.</p>
+                </div>
+              )}
+
+              {isSignUp && (
+                <div className="space-y-2">
+                  <Label htmlFor="phoneNumber">Phone Number</Label>
+                  <div className="flex gap-2">
+                    <Select value={countryDialCode} onValueChange={setCountryDialCode}>
+                      <SelectTrigger className="w-[130px] shrink-0">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {COUNTRY_DIAL_CODES.map((c) => (
+                          <SelectItem key={c.iso2} value={c.dialCode}>
+                            {c.flag} {c.dialCode}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      id="phoneNumber"
+                      type="tel"
+                      inputMode="numeric"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value.replace(/[^\d]/g, ""))}
+                      placeholder="712345678"
+                      className="flex-1"
+                      required
+                    />
+                  </div>
                 </div>
               )}
 

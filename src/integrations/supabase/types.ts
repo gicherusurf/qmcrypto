@@ -69,6 +69,7 @@ export type Database = {
           created_at: string | null
           email: string | null
           full_name: string | null
+          phone_number: string | null
           id: string
           referral_code: string | null
           referred_by: string | null
@@ -78,11 +79,14 @@ export type Database = {
           updated_at: string | null
           user_id: string
           withdrawable_balance: number
+          team_volume: number
+          current_rank: string
         }
         Insert: {
           created_at?: string | null
           email?: string | null
           full_name?: string | null
+          phone_number?: string | null
           id?: string
           referral_code?: string | null
           referred_by?: string | null
@@ -92,11 +96,14 @@ export type Database = {
           updated_at?: string | null
           user_id: string
           withdrawable_balance?: number
+          team_volume?: number
+          current_rank?: string
         }
         Update: {
           created_at?: string | null
           email?: string | null
           full_name?: string | null
+          phone_number?: string | null
           id?: string
           referral_code?: string | null
           referred_by?: string | null
@@ -106,6 +113,8 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
           withdrawable_balance?: number
+          team_volume?: number
+          current_rank?: string
         }
         Relationships: [
           {
