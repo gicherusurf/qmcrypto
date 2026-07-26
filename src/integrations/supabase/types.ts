@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      kyc_verifications: {
+        Row: {
+          id: string
+          user_id: string
+          document_url: string
+          status: string
+          admin_notes: string | null
+          submitted_at: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          document_url: string
+          status?: string
+          admin_notes?: string | null
+          submitted_at?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          document_url?: string
+          status?: string
+          admin_notes?: string | null
+          submitted_at?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kyc_verifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deposits: {
         Row: {
           admin_notes: string | null
@@ -446,6 +487,10 @@ export type Database = {
       }
       renew_my_subscription: { Args: never; Returns: string }
       set_my_auto_renew: { Args: { _enabled: boolean }; Returns: undefined }
+      get_my_kyc_status: {
+        Args: never
+        Returns: { status: string; admin_notes: string | null; submitted_at: string }[]
+      }
       get_my_affiliate_dashboard: {
         Args: never
         Returns: {

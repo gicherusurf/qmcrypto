@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { Navbar } from "@/components/layout/Navbar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, ArrowUpRight, Settings, DollarSign, Radio, LayoutDashboard, History, Gift } from "lucide-react";
+import { Users, ArrowUpRight, Settings, DollarSign, Radio, LayoutDashboard, History, Gift, ShieldCheck } from "lucide-react";
 import { AdminUsers } from "@/components/admin/AdminUsers";
 import { AdminWithdrawals } from "@/components/admin/AdminWithdrawals";
 import { AdminSettings } from "@/components/admin/AdminSettings";
@@ -12,6 +12,7 @@ import { AdminSignals } from "@/components/admin/AdminSignals";
 import { AdminOverview } from "@/components/admin/AdminOverview";
 import { AdminDepositsHistory } from "@/components/admin/AdminDepositsHistory";
 import { AdminReferrals } from "@/components/admin/AdminReferrals";
+import { AdminKyc } from "@/components/admin/AdminKyc";
 
 export default function Admin() {
   const { user, isAdmin, isModerator, loading } = useAuth();
@@ -51,6 +52,9 @@ export default function Admin() {
             <TabsTrigger value="deposits-history" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
               <History className="h-3 w-3 sm:h-4 sm:w-4" /><span>Dep. History</span>
             </TabsTrigger>
+            <TabsTrigger value="kyc" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
+              <ShieldCheck className="h-3 w-3 sm:h-4 sm:w-4" /><span>KYC</span>
+            </TabsTrigger>
             {isAdmin && (
               <TabsTrigger value="referrals" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
                 <Gift className="h-3 w-3 sm:h-4 sm:w-4" /><span>Referrals</span>
@@ -79,6 +83,7 @@ export default function Admin() {
           {isAdmin && <TabsContent value="overview"><AdminOverview /></TabsContent>}
           <TabsContent value="deposits"><AdminDeposits /></TabsContent>
           <TabsContent value="deposits-history"><AdminDepositsHistory /></TabsContent>
+          <TabsContent value="kyc"><AdminKyc /></TabsContent>
           {isAdmin && <TabsContent value="referrals"><AdminReferrals /></TabsContent>}
           {isAdmin && <TabsContent value="signals"><AdminSignals /></TabsContent>}
           <TabsContent value="withdrawals"><AdminWithdrawals /></TabsContent>

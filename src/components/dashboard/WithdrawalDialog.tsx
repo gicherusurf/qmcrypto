@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
-import { AlertCircle, Calendar, Wallet } from "lucide-react";
+import { AlertCircle, Calendar, Wallet, ShieldCheck, Upload, Clock } from "lucide-react";
 import { addDays, isAfter, format } from "date-fns";
 
 interface WithdrawalDialogProps {
@@ -18,9 +18,48 @@ interface WithdrawalDialogProps {
 
 export function WithdrawalDialog({ open, onOpenChange, onSuccess }: WithdrawalDialogProps) {
   const { profile } = useAuth();
+  const qc = useQueryClient();
   const [amount, setAmount] = useState("");
   const [walletAddress, setWalletAddress] = useState("");
   const [loading, setLoading] = useState(false);
+  const [idFile, setIdFile] = useState<File | null>(null);
+  const [uploadingKyc, setUploadingKyc] = useState(false);
+
+  const { data: kyc, isLoading: kycLoading } = useQuery({
+    queryKey: ["my-kyc-status"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_my_kyc_status");
+      if (error) throw error;
+      return data?.[0] ?? null;
+    },
+    enabled: open,
+  });
+
+  const handleKycUpload = async () => {
+    if (!idFile || !profile?.user_id || !profile?.id) return;
+    setUploadingKyc(true);
+    try {
+      const ext = idFile.name.split(".").pop();
+      const path = `${profile.user_id}/${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage.from("kyc-documents").upload(path, idFile);
+      if (uploadError) throw uploadError;
+
+      const { error: insertError } = await supabase.from("kyc_verifications").insert({
+        user_id: profile.id,
+        document_url: path,
+      });
+      if (insertError) throw insertError;
+
+      toast({ title: "ID submitted", description: "Your document is under review. This usually takes a short while." });
+      setIdFile(null);
+      qc.invalidateQueries({ queryKey: ["my-kyc-status"] });
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : "Upload failed";
+      toast({ title: "Failed to submit ID", description: msg, variant: "destructive" });
+    } finally {
+      setUploadingKyc(false);
+    }
+  };
 
   // Get last withdrawal to check bi-weekly restriction
   const { data: lastWithdrawal } = useQuery({
@@ -91,8 +130,14 @@ export function WithdrawalDialog({ open, onOpenChange, onSuccess }: WithdrawalDi
       setWalletAddress("");
       onSuccess();
       onOpenChange(false);
-    } catch (error: any) {
-      toast({ title: "Failed to submit withdrawal", description: error.message, variant: "destructive" });
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : "Unknown error";
+      if (msg.includes("KYC_REQUIRED")) {
+        toast({ title: "ID verification required", description: "Please upload a copy of your ID before withdrawing.", variant: "destructive" });
+        qc.invalidateQueries({ queryKey: ["my-kyc-status"] });
+      } else {
+        toast({ title: "Failed to submit withdrawal", description: msg, variant: "destructive" });
+      }
     } finally {
       setLoading(false);
     }
@@ -108,6 +153,43 @@ export function WithdrawalDialog({ open, onOpenChange, onSuccess }: WithdrawalDi
           </DialogTitle>
         </DialogHeader>
 
+        {kycLoading ? (
+          <div className="py-8 text-center text-muted-foreground text-sm">Checking verification status...</div>
+        ) : !kyc || kyc.status === "rejected" ? (
+          <div className="space-y-4">
+            {kyc?.status === "rejected" && (
+              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-sm">
+                <p className="font-medium text-destructive">Your previous ID was rejected</p>
+                {kyc.admin_notes && <p className="text-muted-foreground mt-1">{kyc.admin_notes}</p>}
+                <p className="text-muted-foreground mt-1">Please upload a clearer copy.</p>
+              </div>
+            )}
+            <div className="flex items-start gap-3 p-4 rounded-lg bg-primary/5 border border-primary/20">
+              <ShieldCheck className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+              <div>
+                <p className="font-medium">Identity verification required</p>
+                <p className="text-sm text-muted-foreground">Upload a clear photo or scan of your government ID or passport to enable withdrawals.</p>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="idFile">ID / Passport copy</Label>
+              <Input id="idFile" type="file" accept="image/*,.pdf" onChange={(e) => setIdFile(e.target.files?.[0] || null)} />
+            </div>
+            <Button onClick={handleKycUpload} disabled={!idFile || uploadingKyc} className="w-full">
+              <Upload className="h-4 w-4 mr-2" />
+              {uploadingKyc ? "Uploading..." : "Submit for Verification"}
+            </Button>
+          </div>
+        ) : kyc.status === "pending" ? (
+          <div className="flex items-start gap-3 p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+            <Clock className="h-5 w-5 text-yellow-500 mt-0.5 shrink-0" />
+            <div>
+              <p className="font-medium">ID under review</p>
+              <p className="text-sm text-muted-foreground">Submitted {format(new Date(kyc.submitted_at), "MMM d, yyyy")}. You'll be able to withdraw once it's approved.</p>
+            </div>
+          </div>
+        ) : (
+          <>
         {!canWithdraw && nextWithdrawalDate && (
           <div className="flex items-start gap-3 p-4 rounded-lg bg-destructive/10 border border-destructive/20">
             <AlertCircle className="h-5 w-5 text-destructive mt-0.5" />
@@ -176,6 +258,8 @@ export function WithdrawalDialog({ open, onOpenChange, onSuccess }: WithdrawalDi
             {loading ? "Submitting..." : "Submit Withdrawal Request"}
           </Button>
         </form>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );
