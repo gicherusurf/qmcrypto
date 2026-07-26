@@ -437,6 +437,25 @@ export type Database = {
       }
       renew_my_subscription: { Args: never; Returns: string }
       set_my_auto_renew: { Args: { _enabled: boolean }; Returns: undefined }
+      get_my_affiliate_dashboard: {
+        Args: never
+        Returns: {
+          current_rank: string
+          personal_referrals: number
+          active_team_size: number
+          team_volume: number
+          deposit_commissions_earned: number
+          profit_share_earned: number
+          leadership_bonuses_earned: number
+          matching_bonuses_earned: number
+          total_affiliate_earnings: number
+          available_balance: number
+          daily_signal_limit: number
+          taken_today: number
+          subscription_status: string
+          next_billing_date: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

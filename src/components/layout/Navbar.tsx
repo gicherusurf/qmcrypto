@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
-import { LogOut, User, Shield, Menu, X, Radio, History } from "lucide-react";
+import { LogOut, User, Shield, Menu, X, Radio, History, Trophy } from "lucide-react";
 import { useState } from "react";
 
 export function Navbar() {
@@ -31,6 +31,7 @@ export function Navbar() {
                 <Link to="/dashboard"><Button variant="ghost" size="sm"><User className="h-4 w-4 mr-2" />Dashboard</Button></Link>
                 <Link to="/signals"><Button variant="ghost" size="sm"><Radio className="h-4 w-4 mr-2" />Signals</Button></Link>
                 <Link to="/history"><Button variant="ghost" size="sm"><History className="h-4 w-4 mr-2" />History</Button></Link>
+                <Link to="/affiliate"><Button variant="ghost" size="sm"><Trophy className="h-4 w-4 mr-2" />Affiliate</Button></Link>
                 {(isAdmin || isModerator) && <Link to="/admin"><Button variant="ghost" size="sm"><Shield className="h-4 w-4 mr-2" />{isAdmin ? "Admin" : "Moderator"}</Button></Link>}
                 <Button variant="outline" size="sm" onClick={handleSignOut}><LogOut className="h-4 w-4 mr-2" />Sign Out</Button>
               </>
@@ -55,6 +56,7 @@ export function Navbar() {
                   <Link to="/dashboard" onClick={() => setOpen(false)}><Button variant="ghost" className="w-full justify-start"><User className="h-4 w-4 mr-2" />Dashboard</Button></Link>
                   <Link to="/signals" onClick={() => setOpen(false)}><Button variant="ghost" className="w-full justify-start"><Radio className="h-4 w-4 mr-2" />Signals</Button></Link>
                   <Link to="/history" onClick={() => setOpen(false)}><Button variant="ghost" className="w-full justify-start"><History className="h-4 w-4 mr-2" />History</Button></Link>
+                  <Link to="/affiliate" onClick={() => setOpen(false)}><Button variant="ghost" className="w-full justify-start"><Trophy className="h-4 w-4 mr-2" />Affiliate</Button></Link>
                   {(isAdmin || isModerator) && <Link to="/admin" onClick={() => setOpen(false)}><Button variant="ghost" className="w-full justify-start"><Shield className="h-4 w-4 mr-2" />{isAdmin ? "Admin" : "Moderator"}</Button></Link>}
                   <Button variant="outline" className="w-full justify-start" onClick={handleSignOut}><LogOut className="h-4 w-4 mr-2" />Sign Out</Button>
                 </>
