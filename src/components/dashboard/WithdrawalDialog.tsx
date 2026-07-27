@@ -101,6 +101,11 @@ export function WithdrawalDialog({ open, onOpenChange, onSuccess }: WithdrawalDi
       return;
     }
 
+    if (withdrawAmount < 200) {
+      toast({ title: "Minimum withdrawal is $200", variant: "destructive" });
+      return;
+    }
+
     if (withdrawAmount > availableBalance) {
       toast({ title: "Insufficient profits", description: "You can only withdraw profits, not deposits or bonuses.", variant: "destructive" });
       return;
@@ -210,12 +215,12 @@ export function WithdrawalDialog({ open, onOpenChange, onSuccess }: WithdrawalDi
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="amount">Amount (USD)</Label>
+            <Label htmlFor="amount">Amount (USD) — $200 minimum</Label>
             <Input
               id="amount"
               type="number"
               step="0.01"
-              min="1"
+              min="200"
               max={availableBalance}
               placeholder="Enter amount"
               value={amount}

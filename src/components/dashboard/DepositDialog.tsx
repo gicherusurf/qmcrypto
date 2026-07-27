@@ -51,6 +51,10 @@ export function DepositDialog({ open, onOpenChange, onSuccess }: Props) {
       toast({ title: "Enter a valid amount", variant: "destructive" });
       return;
     }
+    if (amt < 200) {
+      toast({ title: "Minimum deposit is $200", variant: "destructive" });
+      return;
+    }
     if (!txHash.trim()) {
       toast({ title: "Transaction hash required", variant: "destructive" });
       return;
@@ -121,8 +125,8 @@ export function DepositDialog({ open, onOpenChange, onSuccess }: Props) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="amount">Amount (USD)</Label>
-            <Input id="amount" type="number" step="0.01" min="1" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="100" />
+            <Label htmlFor="amount">Amount (USD) — $200 minimum</Label>
+            <Input id="amount" type="number" step="0.01" min="200" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="200" />
           </div>
 
           <div className="space-y-2">
