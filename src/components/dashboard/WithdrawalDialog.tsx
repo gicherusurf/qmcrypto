@@ -70,6 +70,7 @@ export function WithdrawalDialog({ open, onOpenChange, onSuccess }: WithdrawalDi
         .from("withdrawals")
         .select("*")
         .eq("user_id", profile.id)
+        .neq("status", "rejected")
         .order("requested_at", { ascending: false })
         .limit(1)
         .maybeSingle();
