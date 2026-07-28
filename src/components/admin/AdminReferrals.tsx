@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -18,13 +19,26 @@ type Profile = {
   created_at: string;
 };
 
+// Normalized shape combining all three commission sources:
+// - legacy `referral_commissions` (pre-7-level system, direct/level-1 only)
+// - `affiliate_commissions` (7-level deposit cascade)
+// - `profit_share_commissions` (7-level signal profit-share cascade)
 type Commission = {
   id: string;
   referrer_id: string;
   referee_id: string;
-  stake_amount: number;
+  basis_amount: number;
   commission_amount: number;
+  level: number;
+  type: "deposit" | "profit_share" | "legacy_deposit" | "legacy_profit_share";
   created_at: string;
+};
+
+const TYPE_LABELS: Record<Commission["type"], string> = {
+  deposit: "Deposit",
+  profit_share: "Profit share",
+  legacy_deposit: "Deposit (legacy)",
+  legacy_profit_share: "Profit share (legacy)",
 };
 
 type TreeNode = Profile & {
@@ -124,7 +138,7 @@ function UserDetailPanel({
   const earned = commissions.filter((c) => c.referrer_id === node.id);
   const paidToReferrer = commissions.filter((c) => c.referee_id === node.id);
   const totalEarned = earned.reduce((s, c) => s + Number(c.commission_amount || 0), 0);
-  const totalStakeBasis = earned.reduce((s, c) => s + Number(c.stake_amount || 0), 0);
+  const totalStakeBasis = earned.reduce((s, c) => s + Number(c.basis_amount || 0), 0);
 
   return (
     <Dialog open={true} onOpenChange={(o) => !o && onClose()}>
@@ -225,6 +239,7 @@ function UserDetailPanel({
               <TableHeader>
                 <TableRow>
                   <TableHead>From referee</TableHead>
+                  <TableHead>Type / Level</TableHead>
                   <TableHead className="text-right">Basis</TableHead>
                   <TableHead className="text-right">Commission</TableHead>
                   <TableHead>Date</TableHead>
@@ -239,14 +254,17 @@ function UserDetailPanel({
                         <div className="text-sm">{re?.full_name || "—"}</div>
                         <div className="text-xs text-muted-foreground">{re?.email}</div>
                       </TableCell>
-                      <TableCell className="text-right">${Number(c.stake_amount).toFixed(2)}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="text-xs">{TYPE_LABELS[c.type]} · L{c.level}</Badge>
+                      </TableCell>
+                      <TableCell className="text-right">${Number(c.basis_amount).toFixed(2)}</TableCell>
                       <TableCell className="text-right text-success font-medium">${Number(c.commission_amount).toFixed(2)}</TableCell>
                       <TableCell className="text-xs text-muted-foreground">{format(new Date(c.created_at), "MMM d, HH:mm")}</TableCell>
                     </TableRow>
                   );
                 })}
                 {earned.length === 0 && (
-                  <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-4 text-sm">No commissions yet</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-4 text-sm">No commissions yet</TableCell></TableRow>
                 )}
               </TableBody>
             </Table>
@@ -263,6 +281,7 @@ function UserDetailPanel({
                 <TableHeader>
                   <TableRow>
                     <TableHead>To referrer</TableHead>
+                    <TableHead>Type / Level</TableHead>
                     <TableHead className="text-right">Commission</TableHead>
                     <TableHead>Date</TableHead>
                   </TableRow>
@@ -276,6 +295,7 @@ function UserDetailPanel({
                           <div className="text-sm">{rr?.full_name || "—"}</div>
                           <div className="text-xs text-muted-foreground">{rr?.email}</div>
                         </TableCell>
+                        <TableCell><Badge variant="outline" className="text-xs">{TYPE_LABELS[c.type]} · L{c.level}</Badge></TableCell>
                         <TableCell className="text-right text-success">${Number(c.commission_amount).toFixed(2)}</TableCell>
                         <TableCell className="text-xs text-muted-foreground">{format(new Date(c.created_at), "MMM d, HH:mm")}</TableCell>
                       </TableRow>
@@ -299,15 +319,57 @@ export function AdminReferrals() {
   const { data, isLoading } = useQuery({
     queryKey: ["admin-referrals"],
     queryFn: async () => {
-      const [profilesRes, commissionsRes] = await Promise.all([
+      const [profilesRes, legacyRes, depositRes, profitShareRes] = await Promise.all([
         supabase.from("profiles").select("id, full_name, email, referral_code, referred_by, created_at"),
-        supabase.from("referral_commissions").select("id, referrer_id, referee_id, stake_amount, commission_amount, created_at").order("created_at", { ascending: false }),
+        supabase.from("referral_commissions").select("id, referrer_id, referee_id, stake_amount, commission_amount, created_at, signal_take_id"),
+        supabase.from("affiliate_commissions").select("id, referrer_id, referee_id, deposit_amount, commission_amount, level, created_at"),
+        supabase.from("profit_share_commissions").select("id, referrer_id, referee_id, profit_amount, commission_amount, level, created_at"),
       ]);
       if (profilesRes.error) throw profilesRes.error;
-      if (commissionsRes.error) throw commissionsRes.error;
+      if (legacyRes.error) throw legacyRes.error;
+      if (depositRes.error) throw depositRes.error;
+      if (profitShareRes.error) throw profitShareRes.error;
+
+      const legacy: Commission[] = (legacyRes.data || []).map((c) => ({
+        id: c.id,
+        referrer_id: c.referrer_id,
+        referee_id: c.referee_id,
+        basis_amount: Number(c.stake_amount || 0),
+        commission_amount: Number(c.commission_amount || 0),
+        level: 1,
+        type: c.signal_take_id ? "legacy_profit_share" : "legacy_deposit",
+        created_at: c.created_at,
+      }));
+
+      const deposit: Commission[] = (depositRes.data || []).map((c) => ({
+        id: c.id,
+        referrer_id: c.referrer_id,
+        referee_id: c.referee_id,
+        basis_amount: Number(c.deposit_amount || 0),
+        commission_amount: Number(c.commission_amount || 0),
+        level: c.level,
+        type: "deposit",
+        created_at: c.created_at,
+      }));
+
+      const profitShare: Commission[] = (profitShareRes.data || []).map((c) => ({
+        id: c.id,
+        referrer_id: c.referrer_id,
+        referee_id: c.referee_id,
+        basis_amount: Number(c.profit_amount || 0),
+        commission_amount: Number(c.commission_amount || 0),
+        level: c.level,
+        type: "profit_share",
+        created_at: c.created_at,
+      }));
+
+      const commissions = [...legacy, ...deposit, ...profitShare].sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+
       return {
         profiles: (profilesRes.data || []) as Profile[],
-        commissions: (commissionsRes.data || []) as Commission[],
+        commissions,
       };
     },
     refetchInterval: 30000,
@@ -435,6 +497,7 @@ export function AdminReferrals() {
                 <TableRow>
                   <TableHead>Referrer</TableHead>
                   <TableHead>Referee</TableHead>
+                  <TableHead>Type / Level</TableHead>
                   <TableHead className="text-right">Basis</TableHead>
                   <TableHead className="text-right">Commission</TableHead>
                   <TableHead>Date</TableHead>
@@ -454,14 +517,15 @@ export function AdminReferrals() {
                         <div className="text-sm">{re?.full_name || "—"}</div>
                         <div className="text-xs text-muted-foreground">{re?.email}</div>
                       </TableCell>
-                      <TableCell className="text-right">${Number(c.stake_amount).toFixed(2)}</TableCell>
+                      <TableCell><Badge variant="outline" className="text-xs">{TYPE_LABELS[c.type]} · L{c.level}</Badge></TableCell>
+                      <TableCell className="text-right">${Number(c.basis_amount).toFixed(2)}</TableCell>
                       <TableCell className="text-right text-success font-medium">${Number(c.commission_amount).toFixed(2)}</TableCell>
                       <TableCell className="text-xs text-muted-foreground">{format(new Date(c.created_at), "MMM d, HH:mm")}</TableCell>
                     </TableRow>
                   );
                 })}
                 {(!data?.commissions || data.commissions.length === 0) && (
-                  <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">No commissions yet</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">No commissions yet</TableCell></TableRow>
                 )}
               </TableBody>
             </Table>

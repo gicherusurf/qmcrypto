@@ -202,6 +202,108 @@ export type Database = {
           },
         ]
       }
+      affiliate_commissions: {
+        Row: {
+          id: string
+          referrer_id: string
+          referee_id: string
+          deposit_id: string
+          level: number
+          deposit_amount: number
+          commission_rate: number
+          commission_amount: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          referrer_id: string
+          referee_id: string
+          deposit_id: string
+          level: number
+          deposit_amount: number
+          commission_rate: number
+          commission_amount: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          referrer_id?: string
+          referee_id?: string
+          deposit_id?: string
+          level?: number
+          deposit_amount?: number
+          commission_rate?: number
+          commission_amount?: number
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_commissions_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "affiliate_commissions_referee_id_fkey"
+            columns: ["referee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profit_share_commissions: {
+        Row: {
+          id: string
+          referrer_id: string
+          referee_id: string
+          signal_take_id: string
+          level: number
+          profit_amount: number
+          commission_rate: number
+          commission_amount: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          referrer_id: string
+          referee_id: string
+          signal_take_id: string
+          level: number
+          profit_amount: number
+          commission_rate: number
+          commission_amount: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          referrer_id?: string
+          referee_id?: string
+          signal_take_id?: string
+          level?: number
+          profit_amount?: number
+          commission_rate?: number
+          commission_amount?: number
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profit_share_commissions_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profit_share_commissions_referee_id_fkey"
+            columns: ["referee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       referral_commissions: {
         Row: {
           commission_amount: number
