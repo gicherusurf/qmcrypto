@@ -66,6 +66,22 @@ CREATE POLICY "Wallet settings are viewable by authenticated users" ON public.se
     OR public.is_staff(auth.uid())
   );
 
+-- Hardened direct-write policies (added 2026-07-29 during security audit):
+-- Users may only self-insert a PENDING deposit >= $200 (cannot forge an
+-- approved status or sub-minimum amount via the anon key / dev tools).
+DROP POLICY IF EXISTS "Users create own deposits" ON public.deposits;
+CREATE POLICY "Users create own deposits" ON public.deposits FOR INSERT
+  WITH CHECK (user_id = public.get_user_profile_id() AND status = 'pending' AND amount_usd >= 200);
+
+-- signal_takes may ONLY be inserted from inside take_signal(), which sets the
+-- transaction-local flag app.bypass_balance_check before its INSERT. This blocks
+-- a user from forging a winning take directly (which would skip the balance
+-- deduction and daily-limit checks and let close_due_signals() pay out profit).
+DROP POLICY IF EXISTS "Users create own takes" ON public.signal_takes;
+DROP POLICY IF EXISTS "Takes created only via take_signal" ON public.signal_takes;
+CREATE POLICY "Takes created only via take_signal" ON public.signal_takes FOR INSERT
+  WITH CHECK (user_id = public.get_user_profile_id() AND current_setting('app.bypass_balance_check', true) = 'true');
+
 -- ----------------------------------------------------------------------------
 -- 2. PROFILES: new columns
 -- ----------------------------------------------------------------------------
