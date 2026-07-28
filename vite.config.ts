@@ -19,7 +19,7 @@ export default defineConfig(({ mode }) => ({
       manifest: {
         name: "QMProfits - Grow Your Crypto",
         short_name: "QMProfits",
-        description: "Earn 10% bi-weekly returns on your crypto investment",
+        description: "Automated trading signals, referral earnings, and portfolio growth.",
         theme_color: "#0a0e17",
         background_color: "#0a0e17",
         display: "standalone",
