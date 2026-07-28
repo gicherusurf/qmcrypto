@@ -1,8 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { ArrowRight, TrendingUp, Radio, ShieldCheck } from "lucide-react";
+import { ArrowRight, TrendingUp, Radio, ShieldCheck, LayoutDashboard } from "lucide-react";
+import { useAuth } from "@/lib/auth";
 
 export function Hero() {
+  const { user } = useAuth();
   return (
     <section className="relative pt-32 pb-20 overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/10 pointer-events-none" />
@@ -23,14 +25,31 @@ export function Hero() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/auth?mode=signup">
-              <Button variant="hero" size="lg" className="w-full sm:w-auto">
-                Start Trading <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
-            <Link to="/auth">
-              <Button variant="outline" size="lg" className="w-full sm:w-auto">Sign In</Button>
-            </Link>
+            {user ? (
+              <>
+                <Link to="/dashboard">
+                  <Button variant="hero" size="lg" className="w-full sm:w-auto">
+                    <LayoutDashboard className="h-4 w-4" /> Go to Dashboard
+                  </Button>
+                </Link>
+                <Link to="/signals">
+                  <Button variant="outline" size="lg" className="w-full sm:w-auto">
+                    <Radio className="h-4 w-4 mr-2" /> View Signals
+                  </Button>
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link to="/auth?mode=signup">
+                  <Button variant="hero" size="lg" className="w-full sm:w-auto">
+                    Start Trading <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </Link>
+                <Link to="/auth">
+                  <Button variant="outline" size="lg" className="w-full sm:w-auto">Sign In</Button>
+                </Link>
+              </>
+            )}
           </div>
 
           <div className="grid grid-cols-3 gap-6 mt-16 max-w-2xl mx-auto">
