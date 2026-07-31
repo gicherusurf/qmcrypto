@@ -627,6 +627,14 @@ export type Database = {
         Args: { _amount: number; _wallet: string }
         Returns: string
       }
+      request_mpesa_deposit: {
+        Args: { _amount_usd: number; _phone: string }
+        Returns: string
+      }
+      request_mpesa_withdrawal: {
+        Args: { _amount_usd: number; _phone: string }
+        Returns: string
+      }
       take_signal: {
         Args: { _signal_id: string; _stake: number }
         Returns: string

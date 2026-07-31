@@ -22,10 +22,17 @@ const currencyOptions = [
 export function DepositDialog({ open, onOpenChange, onSuccess }: Props) {
   const { profile } = useAuth();
   const currency = "USDT_TRC20" as const;
+  const [method, setMethod] = useState<"usdt" | "mpesa">("usdt");
   const [amount, setAmount] = useState("");
   const [txHash, setTxHash] = useState("");
+  const [phone, setPhone] = useState("254");
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+  const [stkSent, setStkSent] = useState(false);
+
+  const DEPOSIT_RATE = 133;
+  const amtNum = parseFloat(amount) || 0;
+  const kesAmount = Math.round(amtNum * DEPOSIT_RATE);
 
   const { data: walletAddress } = useQuery({
     queryKey: ["wallet", currency],
@@ -53,6 +60,26 @@ export function DepositDialog({ open, onOpenChange, onSuccess }: Props) {
     }
     if (amt < 200) {
       toast({ title: "Minimum deposit is $200", variant: "destructive" });
+      return;
+    }
+    if (method === "mpesa") {
+      if (!/^254\d{9}$/.test(phone.trim())) {
+        toast({ title: "Invalid phone", description: "Use format 254712345678 (12 digits).", variant: "destructive" });
+        return;
+      }
+      setLoading(true);
+      try {
+        const { error } = await supabase.rpc("request_mpesa_deposit", { _amount_usd: amt, _phone: phone.trim() });
+        if (error) throw error;
+        setStkSent(true);
+        toast({ title: "M-Pesa request sent", description: `Check your phone and enter your M-Pesa PIN to pay KSh ${kesAmount.toLocaleString()}.` });
+        onSuccess();
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "Failed to initiate M-Pesa payment";
+        toast({ title: "Error", description: msg, variant: "destructive" });
+      } finally {
+        setLoading(false);
+      }
       return;
     }
     if (!txHash.trim()) {
@@ -102,12 +129,18 @@ export function DepositDialog({ open, onOpenChange, onSuccess }: Props) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label>Currency</Label>
-            <div className="flex items-center h-10 px-3 rounded-md border border-input bg-muted/30 text-sm">
-              USDT (TRC20)
+            <Label>Payment Method</Label>
+            <div className="grid grid-cols-2 gap-2">
+              <Button type="button" variant={method === "usdt" ? "default" : "outline"} onClick={() => { setMethod("usdt"); setStkSent(false); }}>
+                USDT (TRC20)
+              </Button>
+              <Button type="button" variant={method === "mpesa" ? "default" : "outline"} onClick={() => { setMethod("mpesa"); setStkSent(false); }}>
+                M-Pesa
+              </Button>
             </div>
           </div>
 
+          {method === "usdt" && (
           <div className="p-4 rounded-lg bg-muted/40 border border-border space-y-2">
             <p className="text-xs text-muted-foreground">Send to this address:</p>
             <div className="flex items-center gap-2">
@@ -123,12 +156,34 @@ export function DepositDialog({ open, onOpenChange, onSuccess }: Props) {
               Don't have USDT? Buy it on Binance <ExternalLink className="h-3 w-3" />
             </a>
           </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="amount">Amount (USD) — $200 minimum</Label>
             <Input id="amount" type="number" step="0.01" min="200" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="200" />
           </div>
 
+          {method === "mpesa" && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="phone">M-Pesa Phone Number</Label>
+                <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))} placeholder="254712345678" maxLength={12} />
+              </div>
+              {amtNum >= 200 && (
+                <div className="p-3 rounded-lg bg-muted/40 border border-border text-sm">
+                  You'll pay <span className="font-semibold text-primary">KSh {kesAmount.toLocaleString()}</span> via M-Pesa (rate: 133 KSh/$)
+                </div>
+              )}
+              {stkSent && (
+                <div className="p-3 rounded-lg bg-primary/10 border border-primary/30 text-sm">
+                  Payment request sent — check your phone and enter your M-Pesa PIN. Your balance updates automatically within a few minutes of payment.
+                </div>
+              )}
+            </>
+          )}
+
+          {method === "usdt" && (
+          <>
           <div className="space-y-2">
             <Label htmlFor="tx">Transaction Hash</Label>
             <Input id="tx" value={txHash} onChange={(e) => setTxHash(e.target.value)} placeholder="0x..." />
@@ -141,9 +196,11 @@ export function DepositDialog({ open, onOpenChange, onSuccess }: Props) {
               <Upload className="h-4 w-4 text-muted-foreground" />
             </div>
           </div>
+          </>
+          )}
 
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Submitting..." : "Submit Deposit"}
+          <Button type="submit" className="w-full" disabled={loading || (method === "mpesa" && stkSent)}>
+            {loading ? "Submitting..." : method === "mpesa" ? (stkSent ? "Awaiting payment..." : "Send M-Pesa Request") : "Submit Deposit"}
           </Button>
         </form>
       </DialogContent>

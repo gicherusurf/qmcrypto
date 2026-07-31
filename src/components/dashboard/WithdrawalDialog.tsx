@@ -21,9 +21,13 @@ export function WithdrawalDialog({ open, onOpenChange, onSuccess }: WithdrawalDi
   const qc = useQueryClient();
   const [amount, setAmount] = useState("");
   const [walletAddress, setWalletAddress] = useState("");
+  const [method, setMethod] = useState<"usdt" | "mpesa">("usdt");
+  const [phone, setPhone] = useState("254");
   const [loading, setLoading] = useState(false);
   const [idFile, setIdFile] = useState<File | null>(null);
   const [uploadingKyc, setUploadingKyc] = useState(false);
+
+  const WITHDRAWAL_RATE = 128;
 
   const { data: kyc, isLoading: kycLoading } = useQuery({
     queryKey: ["my-kyc-status"],
@@ -112,8 +116,13 @@ export function WithdrawalDialog({ open, onOpenChange, onSuccess }: WithdrawalDi
       return;
     }
 
-    if (!walletAddress.trim()) {
+    if (method === "usdt" && !walletAddress.trim()) {
       toast({ title: "Please enter a wallet address", variant: "destructive" });
+      return;
+    }
+
+    if (method === "mpesa" && !/^254\d{9}$/.test(phone.trim())) {
+      toast({ title: "Invalid phone", description: "Use format 254712345678 (12 digits).", variant: "destructive" });
       return;
     }
 
@@ -124,14 +133,26 @@ export function WithdrawalDialog({ open, onOpenChange, onSuccess }: WithdrawalDi
 
     setLoading(true);
     try {
-      const { error } = await supabase.rpc("request_withdrawal", {
-        _amount: withdrawAmount,
-        _wallet: walletAddress.trim(),
-      });
+      const { error } =
+        method === "mpesa"
+          ? await supabase.rpc("request_mpesa_withdrawal", {
+              _amount_usd: withdrawAmount,
+              _phone: phone.trim(),
+            })
+          : await supabase.rpc("request_withdrawal", {
+              _amount: withdrawAmount,
+              _wallet: walletAddress.trim(),
+            });
 
       if (error) throw error;
 
-      toast({ title: "Withdrawal request submitted", description: `You'll receive $${netAmount.toFixed(2)} after the 20% fee.` });
+      toast({
+        title: "Withdrawal request submitted",
+        description:
+          method === "mpesa"
+            ? `You'll receive KSh ${Math.round(netAmount * WITHDRAWAL_RATE).toLocaleString()} to M-Pesa after approval (20% fee applied).`
+            : `You'll receive $${netAmount.toFixed(2)} after the 20% fee.`,
+      });
       setAmount("");
       setWalletAddress("");
       onSuccess();
@@ -232,6 +253,19 @@ export function WithdrawalDialog({ open, onOpenChange, onSuccess }: WithdrawalDi
           </div>
 
           <div className="space-y-2">
+            <Label>Payout Method</Label>
+            <div className="grid grid-cols-2 gap-2">
+              <Button type="button" variant={method === "usdt" ? "default" : "outline"} onClick={() => setMethod("usdt")} disabled={!canWithdraw || loading}>
+                USDT (TRC20)
+              </Button>
+              <Button type="button" variant={method === "mpesa" ? "default" : "outline"} onClick={() => setMethod("mpesa")} disabled={!canWithdraw || loading}>
+                M-Pesa
+              </Button>
+            </div>
+          </div>
+
+          {method === "usdt" ? (
+          <div className="space-y-2">
             <Label htmlFor="wallet">Wallet Address</Label>
             <Input
               id="wallet"
@@ -243,12 +277,30 @@ export function WithdrawalDialog({ open, onOpenChange, onSuccess }: WithdrawalDi
               className="bg-background"
             />
           </div>
+          ) : (
+          <div className="space-y-2">
+            <Label htmlFor="mpesa-phone">M-Pesa Phone Number</Label>
+            <Input
+              id="mpesa-phone"
+              type="text"
+              placeholder="254712345678"
+              maxLength={12}
+              value={phone}
+              onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
+              disabled={!canWithdraw || loading}
+              className="bg-background"
+            />
+          </div>
+          )}
 
           {withdrawAmountNum > 0 && (
             <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 text-sm space-y-1">
               <div className="flex justify-between"><span className="text-muted-foreground">Requested</span><span>${withdrawAmountNum.toFixed(2)}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Withdrawal fee (20%)</span><span className="text-destructive">-${feeAmount.toFixed(2)}</span></div>
-              <div className="flex justify-between font-semibold pt-1 border-t border-border"><span>You receive</span><span className="text-success">${netAmount.toFixed(2)}</span></div>
+              <div className="flex justify-between font-semibold pt-1 border-t border-border"><span>You receive</span><span className="text-success">{method === "mpesa" ? `KSh ${Math.round(netAmount * WITHDRAWAL_RATE).toLocaleString()}` : `$${netAmount.toFixed(2)}`}</span></div>
+              {method === "mpesa" && (
+                <div className="flex justify-between text-xs"><span className="text-muted-foreground">Rate</span><span className="text-muted-foreground">128 KSh/$</span></div>
+              )}
             </div>
           )}
 
