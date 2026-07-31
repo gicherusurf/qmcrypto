@@ -1,7 +1,7 @@
 import { Star } from "lucide-react";
 
 const items = [
-  { name: "Marcus T.", role: "Day Trader", text: "The signals are clean and the 3% per trade adds up fast. Best decision I made this year." },
+  { name: "Marcus T.", role: "Day Trader", text: "The signals are clean and the 1.2% per trade adds up fast. Best decision I made this year." },
   { name: "Sophia L.", role: "Crypto Investor", text: "Love that I just open the chat and a fresh signal is waiting. Withdrawals are quick too." },
   { name: "James K.", role: "Portfolio Manager", text: "Consistent returns and a clean interface. The chatbot model is genius." },
 ];

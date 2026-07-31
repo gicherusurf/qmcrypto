@@ -4,7 +4,7 @@ const steps = [
   { icon: Wallet, title: "1. Deposit Crypto", description: "Fund your account with BTC or USDT. Your balance becomes your trading capital." },
   { icon: Radio, title: "2. Receive Signals", description: "Our in-house chatbot pushes live trading signals around the clock." },
   { icon: MousePointerClick, title: "3. Take the Signal", description: "Stake any amount from your balance on a signal you like." },
-  { icon: TrendingUp, title: "4. Earn 3% Profit", description: "When the signal closes, 3% profit is credited automatically to your balance." },
+  { icon: TrendingUp, title: "4. Earn 1.2% Profit", description: "When the signal closes, 1.2% profit is credited automatically to your balance." },
 ];
 
 export function HowItWorks() {

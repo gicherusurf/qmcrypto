@@ -7,7 +7,7 @@ export interface CryptoPrices {
 
 /**
  * Fetches live-ish crypto prices for UI realism only. Never affects
- * settlement, which is always exactly 3% regardless of these numbers.
+ * settlement, which is always exactly 1.2% regardless of these numbers.
  */
 export function useCryptoPrices() {
   return useQuery({

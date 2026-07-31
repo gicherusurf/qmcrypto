@@ -12,7 +12,7 @@ export function Hero() {
         <div className="max-w-4xl mx-auto text-center animate-fade-in">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-6">
             <Radio className="h-3.5 w-3.5 text-primary animate-pulse" />
-            <span className="text-xs font-medium text-primary">Live trading signals · 3% per call</span>
+            <span className="text-xs font-medium text-primary">Live trading signals · 1.2% per call</span>
           </div>
 
           <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
@@ -21,7 +21,7 @@ export function Hero() {
           </h1>
 
           <p className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
-            Deposit crypto, receive premium trading signals from our in-house bot, and earn 3% profit on every signal you take.
+            Deposit crypto, receive premium trading signals from our in-house bot, and earn 1.2% profit on every signal you take.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -54,7 +54,7 @@ export function Hero() {
 
           <div className="grid grid-cols-3 gap-6 mt-16 max-w-2xl mx-auto">
             {[
-              { icon: TrendingUp, label: "3%", sub: "per signal" },
+              { icon: TrendingUp, label: "1.2%", sub: "per signal" },
               { icon: Radio, label: "24/7", sub: "live signals" },
               { icon: ShieldCheck, label: "Secure", sub: "deposits" },
             ].map((s, i) => (

@@ -107,7 +107,7 @@ export default function Signals() {
             <h1 className="font-display text-2xl font-bold flex items-center gap-2">
               <Bot className="h-6 w-6 text-primary" /> Signal Bot
             </h1>
-            <p className="text-sm text-muted-foreground">Live trading signals · 3% profit per call</p>
+            <p className="text-sm text-muted-foreground">Live trading signals · 1.2% profit per call</p>
           </div>
           <div className="text-right">
             <div className="text-xs text-muted-foreground">Available</div>
