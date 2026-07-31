@@ -58,8 +58,8 @@ export function DepositDialog({ open, onOpenChange, onSuccess }: Props) {
       toast({ title: "Enter a valid amount", variant: "destructive" });
       return;
     }
-    if (amt < 1) {
-      toast({ title: "Minimum deposit is $1 (test mode)", variant: "destructive" });
+    if (amt < 200) {
+      toast({ title: "Minimum deposit is $200", variant: "destructive" });
       return;
     }
     if (method === "mpesa") {
@@ -75,7 +75,10 @@ export function DepositDialog({ open, onOpenChange, onSuccess }: Props) {
         toast({ title: "M-Pesa request sent", description: `Check your phone and enter your M-Pesa PIN to pay KSh ${kesAmount.toLocaleString()}.` });
         onSuccess();
       } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : "Failed to initiate M-Pesa payment";
+        const msg =
+          (err && typeof err === "object" && "message" in err && typeof (err as { message?: unknown }).message === "string")
+            ? (err as { message: string }).message
+            : "Failed to initiate M-Pesa payment";
         toast({ title: "Error", description: msg, variant: "destructive" });
       } finally {
         setLoading(false);
@@ -159,8 +162,8 @@ export function DepositDialog({ open, onOpenChange, onSuccess }: Props) {
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="amount">Amount (USD) — $1 minimum (TEST MODE)</Label>
-            <Input id="amount" type="number" step="0.01" min="1" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="1" />
+            <Label htmlFor="amount">Amount (USD) — $200 minimum</Label>
+            <Input id="amount" type="number" step="0.01" min="200" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="200" />
           </div>
 
           {method === "mpesa" && (
