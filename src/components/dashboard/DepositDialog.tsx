@@ -58,8 +58,8 @@ export function DepositDialog({ open, onOpenChange, onSuccess }: Props) {
       toast({ title: "Enter a valid amount", variant: "destructive" });
       return;
     }
-    if (amt < 200) {
-      toast({ title: "Minimum deposit is $200", variant: "destructive" });
+    if (amt < 1) {
+      toast({ title: "Minimum deposit is $1 (test mode)", variant: "destructive" });
       return;
     }
     if (method === "mpesa") {
@@ -159,8 +159,8 @@ export function DepositDialog({ open, onOpenChange, onSuccess }: Props) {
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="amount">Amount (USD) — $200 minimum</Label>
-            <Input id="amount" type="number" step="0.01" min="200" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="200" />
+            <Label htmlFor="amount">Amount (USD) — $1 minimum (TEST MODE)</Label>
+            <Input id="amount" type="number" step="0.01" min="1" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="1" />
           </div>
 
           {method === "mpesa" && (
