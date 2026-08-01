@@ -9,6 +9,7 @@ import { DepositDialog } from "@/components/dashboard/DepositDialog";
 import { WithdrawalDialog } from "@/components/dashboard/WithdrawalDialog";
 import { WithdrawalHistory } from "@/components/dashboard/WithdrawalHistory";
 import { InstallAppBanner } from "@/components/InstallAppBanner";
+import { KycPromptBanner } from "@/components/dashboard/KycPromptBanner";
 import { RecentTrades } from "@/components/dashboard/RecentTrades";
 import { ReferralCard } from "@/components/dashboard/ReferralCard";
 import { SubscriptionCard } from "@/components/dashboard/SubscriptionCard";
@@ -52,6 +53,8 @@ export default function Dashboard() {
           </h1>
           <p className="text-muted-foreground">Your trading overview</p>
         </div>
+
+        <KycPromptBanner />
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <Card className="glass-card">
