@@ -304,6 +304,12 @@ function SignalBubble({
               </div>
             </div>
           ) : isOpen ? (
+            balance < 200 ? (
+              <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 text-sm">
+                <p className="font-medium">Deposit to start trading</p>
+                <p className="text-muted-foreground mt-0.5">You need at least $200 in your balance to take signals. Your balance: ${balance.toFixed(2)}.</p>
+              </div>
+            ) : (
             <div className="flex flex-wrap gap-2">
               <Input
                 type="number"
@@ -328,6 +334,7 @@ function SignalBubble({
                 {busy ? "Opening..." : "Take Signal"}
               </Button>
             </div>
+            )
           ) : (
             <p className="text-xs text-muted-foreground">Signal closed. Wait for the next one.</p>
           )}
