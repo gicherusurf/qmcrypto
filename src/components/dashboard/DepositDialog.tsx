@@ -160,7 +160,7 @@ export function DepositDialog({ open, onOpenChange, onSuccess }: Props) {
           <div className="space-y-2">
             <Label htmlFor="amount">Amount (USD)</Label>
             <Input id="amount" type="number" step="0.01" min="1" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="500" />
-            <p className="text-xs text-muted-foreground">Deposit at least $500 to make the most of your trading. You need $200 in your balance to start taking signals.</p>
+            <p className="text-xs text-muted-foreground">Deposit at least $500 to make the most of your trading.</p>
           </div>
 
           {method === "mpesa" && (
