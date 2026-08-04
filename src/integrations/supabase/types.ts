@@ -584,6 +584,26 @@ export type Database = {
         Args: Record<string, never>
         Returns: { total_members: number; total_deposits: number; total_withdrawals: number; total_commissions: number; total_team_balance: number }[]
       }
+      admin_list_franchises: {
+        Args: Record<string, never>
+        Returns: { profile_id: string; full_name: string; email: string }[]
+      }
+      admin_franchise_members: {
+        Args: { _franchise_id: string }
+        Returns: { id: string; full_name: string; current_rank: string; total_balance: number; total_earnings: number; total_withdrawn: number; team_volume: number; banned: boolean; created_at: string }[]
+      }
+      admin_franchise_deposits: {
+        Args: { _franchise_id: string }
+        Returns: { id: string; member_name: string; amount_usd: number; method: string; status: string; created_at: string; processed_at: string }[]
+      }
+      admin_franchise_withdrawals: {
+        Args: { _franchise_id: string }
+        Returns: { id: string; member_name: string; amount: number; net_amount: number; method: string; status: string; requested_at: string; processed_at: string }[]
+      }
+      admin_franchise_stats: {
+        Args: { _franchise_id: string }
+        Returns: { total_members: number; total_deposits: number; total_withdrawals: number; total_commissions: number; total_team_balance: number }[]
+      }
       get_my_referral_stats: {
         Args: never
         Returns: {

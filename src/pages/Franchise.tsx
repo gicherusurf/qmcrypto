@@ -3,12 +3,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
 import { Navigate } from "react-router-dom";
-import { Users, DollarSign, TrendingUp, Wallet, Loader2, Gift } from "lucide-react";
+import { Users, DollarSign, Wallet, Loader2, Gift, Eye } from "lucide-react";
 import { format } from "date-fns";
+import { useState } from "react";
 
 function StatCard({ icon: Icon, label, value, color }: { icon: typeof Users; label: string; value: string; color: string }) {
   return (
@@ -23,66 +25,129 @@ function StatCard({ icon: Icon, label, value, color }: { icon: typeof Users; lab
 
 export default function Franchise() {
   const { isFranchise, isAdmin, loading } = useAuth();
+  // Admin "view as" mode: which franchise the admin is previewing
+  const [viewAsId, setViewAsId] = useState<string | null>(null);
+  const adminViewing = isAdmin && !!viewAsId;
+
+  // Admins get a list of franchises to pick from
+  const { data: franchiseList } = useQuery({
+    queryKey: ["admin-franchise-list"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("admin_list_franchises");
+      if (error) throw error;
+      return data ?? [];
+    },
+    enabled: isAdmin,
+  });
 
   const { data: stats } = useQuery({
-    queryKey: ["franchise-stats"],
+    queryKey: ["franchise-stats", viewAsId],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("franchise_get_stats");
+      const { data, error } = adminViewing
+        ? await supabase.rpc("admin_franchise_stats", { _franchise_id: viewAsId! })
+        : await supabase.rpc("franchise_get_stats");
       if (error) throw error;
       return data?.[0] ?? null;
     },
-    enabled: isFranchise || isAdmin,
+    enabled: (isFranchise || adminViewing),
   });
 
   const { data: members, isLoading: membersLoading } = useQuery({
-    queryKey: ["franchise-members"],
+    queryKey: ["franchise-members", viewAsId],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("franchise_get_members");
+      const { data, error } = adminViewing
+        ? await supabase.rpc("admin_franchise_members", { _franchise_id: viewAsId! })
+        : await supabase.rpc("franchise_get_members");
       if (error) throw error;
       return data ?? [];
     },
-    enabled: isFranchise || isAdmin,
+    enabled: (isFranchise || adminViewing),
   });
 
   const { data: deposits } = useQuery({
-    queryKey: ["franchise-deposits"],
+    queryKey: ["franchise-deposits", viewAsId],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("franchise_get_deposits");
+      const { data, error } = adminViewing
+        ? await supabase.rpc("admin_franchise_deposits", { _franchise_id: viewAsId! })
+        : await supabase.rpc("franchise_get_deposits");
       if (error) throw error;
       return data ?? [];
     },
-    enabled: isFranchise || isAdmin,
+    enabled: (isFranchise || adminViewing),
   });
 
   const { data: withdrawals } = useQuery({
-    queryKey: ["franchise-withdrawals"],
+    queryKey: ["franchise-withdrawals", viewAsId],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("franchise_get_withdrawals");
+      const { data, error } = adminViewing
+        ? await supabase.rpc("admin_franchise_withdrawals", { _franchise_id: viewAsId! })
+        : await supabase.rpc("franchise_get_withdrawals");
       if (error) throw error;
       return data ?? [];
     },
-    enabled: isFranchise || isAdmin,
+    enabled: (isFranchise || adminViewing),
   });
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   }
 
-  // Only franchise (or admin) can view
+  // Franchisees and admins allowed; everyone else redirected
   if (!isFranchise && !isAdmin) return <Navigate to="/dashboard" replace />;
 
   const statusVariant = (s: string) =>
     s === "approved" || s === "completed" ? "default" : s === "rejected" ? "destructive" : "secondary";
+
+  // Admin who hasn't picked a franchise yet: show the picker
+  const showPicker = isAdmin && !isFranchise;
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       <main className="container mx-auto px-4 pt-24 pb-12">
         <div className="mb-8">
-          <h1 className="font-display text-3xl font-bold mb-2">My <span className="gradient-text">Franchise</span></h1>
-          <p className="text-muted-foreground">Your business network and performance. You have view-only access to your team.</p>
+          <h1 className="font-display text-3xl font-bold mb-2">
+            {showPicker ? <>Franchise <span className="gradient-text">Overview</span></> : <>My <span className="gradient-text">Franchise</span></>}
+          </h1>
+          <p className="text-muted-foreground">
+            {showPicker
+              ? "Select a franchise to preview their scoped panel (read-only)."
+              : "Your business network and performance. You have view-only access to your team."}
+          </p>
         </div>
 
+        {isAdmin && (
+          <div className="mb-6 flex flex-col sm:flex-row sm:items-center gap-3">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Eye className="h-4 w-4" /> Viewing as:
+            </div>
+            <Select value={viewAsId ?? ""} onValueChange={(v) => setViewAsId(v || null)}>
+              <SelectTrigger className="w-full sm:w-72">
+                <SelectValue placeholder="Select a franchise to preview" />
+              </SelectTrigger>
+              <SelectContent>
+                {franchiseList?.map((f: Record<string, unknown>) => (
+                  <SelectItem key={f.profile_id as string} value={f.profile_id as string}>
+                    {(f.full_name as string) || (f.email as string)}
+                  </SelectItem>
+                ))}
+                {(!franchiseList || franchiseList.length === 0) && (
+                  <div className="px-2 py-1.5 text-xs text-muted-foreground">No franchises yet</div>
+                )}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        {showPicker && !viewAsId ? (
+          <Card className="glass-card">
+            <CardContent className="py-16 text-center text-muted-foreground">
+              <Eye className="h-8 w-8 mx-auto mb-3 opacity-50" />
+              Select a franchise above to preview their panel.
+            </CardContent>
+          </Card>
+        ) : (
+        <>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <StatCard icon={Users} label="Team Members" value={String(stats?.total_members ?? 0)} color="bg-primary/10 text-primary" />
           <StatCard icon={DollarSign} label="Total Deposits" value={`$${Number(stats?.total_deposits ?? 0).toFixed(2)}`} color="bg-success/10 text-success" />
@@ -207,6 +272,8 @@ export default function Franchise() {
             </Card>
           </TabsContent>
         </Tabs>
+        </>
+        )}
       </main>
     </div>
   );
