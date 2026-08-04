@@ -33,7 +33,7 @@ export function Navbar() {
                 <Link to="/history"><Button variant="ghost" size="sm"><History className="h-4 w-4 mr-2" />History</Button></Link>
                 <Link to="/affiliate"><Button variant="ghost" size="sm"><Trophy className="h-4 w-4 mr-2" />Affiliate</Button></Link>
                 {(isAdmin || isModerator) && <Link to="/admin"><Button variant="ghost" size="sm"><Shield className="h-4 w-4 mr-2" />{isAdmin ? "Admin" : "Moderator"}</Button></Link>}
-                {(isFranchise || isAdmin) && <Link to="/franchise"><Button variant="ghost" size="sm"><Store className="h-4 w-4 mr-2" />{isAdmin ? "Franchises" : "My Franchise"}</Button></Link>}
+                {(isFranchise || isAdmin) && <Link to="/franchise"><Button variant="ghost" size="sm"><Store className="h-4 w-4 mr-2" />{isAdmin ? "Partners" : "My Partnership"}</Button></Link>}
                 <Button variant="outline" size="sm" onClick={handleSignOut}><LogOut className="h-4 w-4 mr-2" />Sign Out</Button>
               </>
             ) : (
@@ -59,7 +59,7 @@ export function Navbar() {
                   <Link to="/history" onClick={() => setOpen(false)}><Button variant="ghost" className="w-full justify-start"><History className="h-4 w-4 mr-2" />History</Button></Link>
                   <Link to="/affiliate" onClick={() => setOpen(false)}><Button variant="ghost" className="w-full justify-start"><Trophy className="h-4 w-4 mr-2" />Affiliate</Button></Link>
                   {(isAdmin || isModerator) && <Link to="/admin" onClick={() => setOpen(false)}><Button variant="ghost" className="w-full justify-start"><Shield className="h-4 w-4 mr-2" />{isAdmin ? "Admin" : "Moderator"}</Button></Link>}
-                  {(isFranchise || isAdmin) && <Link to="/franchise" onClick={() => setOpen(false)}><Button variant="ghost" className="w-full justify-start"><Store className="h-4 w-4 mr-2" />{isAdmin ? "Franchises" : "My Franchise"}</Button></Link>}
+                  {(isFranchise || isAdmin) && <Link to="/franchise" onClick={() => setOpen(false)}><Button variant="ghost" className="w-full justify-start"><Store className="h-4 w-4 mr-2" />{isAdmin ? "Partners" : "My Partnership"}</Button></Link>}
                   <Button variant="outline" className="w-full justify-start" onClick={handleSignOut}><LogOut className="h-4 w-4 mr-2" />Sign Out</Button>
                 </>
               ) : (

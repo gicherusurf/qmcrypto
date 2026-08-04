@@ -582,7 +582,7 @@ export type Database = {
       }
       franchise_get_stats: {
         Args: Record<string, never>
-        Returns: { total_members: number; total_deposits: number; total_withdrawals: number; total_commissions: number; total_team_balance: number }[]
+        Returns: { total_members: number; total_deposits: number; total_withdrawals: number; total_commissions: number; total_team_balance: number; cash_at_bank: number }[]
       }
       admin_list_franchises: {
         Args: Record<string, never>
@@ -602,7 +602,11 @@ export type Database = {
       }
       admin_franchise_stats: {
         Args: { _franchise_id: string }
-        Returns: { total_members: number; total_deposits: number; total_withdrawals: number; total_commissions: number; total_team_balance: number }[]
+        Returns: { total_members: number; total_deposits: number; total_withdrawals: number; total_commissions: number; total_team_balance: number; cash_at_bank: number }[]
+      }
+      set_partner_float: {
+        Args: { _partner_id: string; _opening_float: number }
+        Returns: undefined
       }
       get_my_referral_stats: {
         Args: never

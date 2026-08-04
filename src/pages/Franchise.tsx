@@ -8,9 +8,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
 import { Navigate } from "react-router-dom";
-import { Users, DollarSign, Wallet, Loader2, Gift, Eye } from "lucide-react";
+import { Users, DollarSign, Wallet, Loader2, Gift, Eye, Landmark } from "lucide-react";
 import { format } from "date-fns";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 
 function StatCard({ icon: Icon, label, value, color }: { icon: typeof Users; label: string; value: string; color: string }) {
   return (
@@ -25,9 +28,27 @@ function StatCard({ icon: Icon, label, value, color }: { icon: typeof Users; lab
 
 export default function Franchise() {
   const { isFranchise, isAdmin, loading } = useAuth();
+  const { toast } = useToast();
+  const qc = useQueryClient();
   // Admin "view as" mode: which franchise the admin is previewing
   const [viewAsId, setViewAsId] = useState<string | null>(null);
   const adminViewing = isAdmin && !!viewAsId;
+
+  const setFloat = async () => {
+    if (!viewAsId) return;
+    const input = window.prompt("Set Cash at Bank opening float (USD) for this partner. This becomes the baseline as of now; future deposits add and withdrawals subtract.", "");
+    if (input === null) return;
+    const val = parseFloat(input);
+    if (isNaN(val)) { toast({ title: "Invalid amount", variant: "destructive" }); return; }
+    try {
+      const { error } = await supabase.rpc("set_partner_float", { _partner_id: viewAsId, _opening_float: val });
+      if (error) throw error;
+      toast({ title: "Cash at Bank updated", description: `Opening float set to $${val.toFixed(2)}.` });
+      qc.invalidateQueries({ queryKey: ["franchise-stats"] });
+    } catch (e: unknown) {
+      toast({ title: "Error", description: e instanceof Error ? e.message : "Failed to set float", variant: "destructive" });
+    }
+  };
 
   // Admins get a list of franchises to pick from
   const { data: franchiseList } = useQuery({
@@ -107,11 +128,11 @@ export default function Franchise() {
       <main className="container mx-auto px-4 pt-24 pb-12">
         <div className="mb-8">
           <h1 className="font-display text-3xl font-bold mb-2">
-            {showPicker ? <>Franchise <span className="gradient-text">Overview</span></> : <>My <span className="gradient-text">Franchise</span></>}
+            {showPicker ? <>Partner <span className="gradient-text">Overview</span></> : <>My <span className="gradient-text">Partnership</span></>}
           </h1>
           <p className="text-muted-foreground">
             {showPicker
-              ? "Select a franchise to preview their scoped panel (read-only)."
+              ? "Select a partner to preview their scoped panel (read-only)."
               : "Your business network and performance. You have view-only access to your team."}
           </p>
         </div>
@@ -123,7 +144,7 @@ export default function Franchise() {
             </div>
             <Select value={viewAsId ?? ""} onValueChange={(v) => setViewAsId(v || null)}>
               <SelectTrigger className="w-full sm:w-72">
-                <SelectValue placeholder="Select a franchise to preview" />
+                <SelectValue placeholder="Select a partner to preview" />
               </SelectTrigger>
               <SelectContent>
                 {franchiseList?.map((f: Record<string, unknown>) => (
@@ -132,7 +153,7 @@ export default function Franchise() {
                   </SelectItem>
                 ))}
                 {(!franchiseList || franchiseList.length === 0) && (
-                  <div className="px-2 py-1.5 text-xs text-muted-foreground">No franchises yet</div>
+                  <div className="px-2 py-1.5 text-xs text-muted-foreground">No partners yet</div>
                 )}
               </SelectContent>
             </Select>
@@ -143,16 +164,24 @@ export default function Franchise() {
           <Card className="glass-card">
             <CardContent className="py-16 text-center text-muted-foreground">
               <Eye className="h-8 w-8 mx-auto mb-3 opacity-50" />
-              Select a franchise above to preview their panel.
+              Select a partner above to preview their panel.
             </CardContent>
           </Card>
         ) : (
         <>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+          <div className="relative">
+            <StatCard icon={Landmark} label="Cash at Bank" value={`$${Number(stats?.cash_at_bank ?? 0).toFixed(2)}`} color="bg-emerald-500/10 text-emerald-400" />
+            {adminViewing && (
+              <button onClick={setFloat} className="absolute top-2 right-2 text-[10px] px-1.5 py-0.5 rounded bg-secondary hover:bg-secondary/80 text-muted-foreground" title="Set opening float">
+                Set
+              </button>
+            )}
+          </div>
           <StatCard icon={Users} label="Team Members" value={String(stats?.total_members ?? 0)} color="bg-primary/10 text-primary" />
           <StatCard icon={DollarSign} label="Total Deposits" value={`$${Number(stats?.total_deposits ?? 0).toFixed(2)}`} color="bg-success/10 text-success" />
           <StatCard icon={Wallet} label="Total Withdrawals" value={`$${Number(stats?.total_withdrawals ?? 0).toFixed(2)}`} color="bg-blue-500/10 text-blue-400" />
-          <StatCard icon={Gift} label="Commissions Generated" value={`$${Number(stats?.total_commissions ?? 0).toFixed(2)}`} color="bg-amber-500/10 text-amber-400" />
+          <StatCard icon={Gift} label="Commissions" value={`$${Number(stats?.total_commissions ?? 0).toFixed(2)}`} color="bg-amber-500/10 text-amber-400" />
         </div>
 
         <Tabs defaultValue="members" className="space-y-4">

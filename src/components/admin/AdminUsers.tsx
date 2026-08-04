@@ -182,7 +182,7 @@ export function AdminUsers() {
                               <SelectItem value="user">User</SelectItem>
                               <SelectItem value="moderator">Moderator</SelectItem>
                               <SelectItem value="admin">Admin</SelectItem>
-                              <SelectItem value="franchise">Franchise</SelectItem>
+                              <SelectItem value="franchise">Partner</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
