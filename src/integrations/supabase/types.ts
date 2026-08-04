@@ -122,6 +122,9 @@ export type Database = {
           withdrawable_balance: number
           team_volume: number
           current_rank: string
+          banned: boolean
+          ban_reason: string | null
+          banned_at: string | null
         }
         Insert: {
           created_at?: string | null
@@ -556,6 +559,14 @@ export type Database = {
       set_user_role: {
         Args: { _target_user_id: string; _role: string }
         Returns: undefined
+      }
+      set_user_banned: {
+        Args: { _target_profile_id: string; _banned: boolean; _reason?: string }
+        Returns: undefined
+      }
+      admin_delete_user: {
+        Args: { _target_profile_id: string }
+        Returns: string
       }
       get_my_referral_stats: {
         Args: never

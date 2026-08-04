@@ -4,10 +4,11 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Loader2, Users, DollarSign, Wallet } from "lucide-react";
+import { Search, Loader2, Users, DollarSign, Wallet, Ban, Trash2, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 
 type UserRoleName = "user" | "moderator" | "admin";
@@ -61,6 +62,51 @@ export function AdminUsers() {
     }
   };
 
+  const toggleBan = async (profileId: string, currentlyBanned: boolean, name: string) => {
+    if (!currentlyBanned) {
+      const reason = window.prompt(`Ban ${name}? Optionally enter a reason:`, "");
+      if (reason === null) return; // cancelled
+      setUpdatingId(profileId);
+      try {
+        const { error } = await supabase.rpc("set_user_banned", { _target_profile_id: profileId, _banned: true, _reason: reason || null });
+        if (error) throw error;
+        toast({ title: "User banned", description: `${name} can no longer trade, deposit, or withdraw.` });
+        qc.invalidateQueries({ queryKey: ["admin-users"] });
+      } catch (e: unknown) {
+        toast({ title: "Error", description: e instanceof Error ? e.message : "Failed to ban", variant: "destructive" });
+      } finally {
+        setUpdatingId(null);
+      }
+    } else {
+      setUpdatingId(profileId);
+      try {
+        const { error } = await supabase.rpc("set_user_banned", { _target_profile_id: profileId, _banned: false });
+        if (error) throw error;
+        toast({ title: "User unbanned", description: `${name}'s access has been restored.` });
+        qc.invalidateQueries({ queryKey: ["admin-users"] });
+      } catch (e: unknown) {
+        toast({ title: "Error", description: e instanceof Error ? e.message : "Failed to unban", variant: "destructive" });
+      } finally {
+        setUpdatingId(null);
+      }
+    }
+  };
+
+  const removeUser = async (profileId: string, name: string) => {
+    if (!window.confirm(`Permanently delete ${name}? This cannot be undone. Users with balances, referrals, or financial history are protected and cannot be deleted (ban them instead).`)) return;
+    setUpdatingId(profileId);
+    try {
+      const { error } = await supabase.rpc("admin_delete_user", { _target_profile_id: profileId });
+      if (error) throw error;
+      toast({ title: "User deleted", description: `${name} has been permanently removed.` });
+      qc.invalidateQueries({ queryKey: ["admin-users"] });
+    } catch (e: unknown) {
+      toast({ title: "Cannot delete user", description: e instanceof Error ? e.message : "Failed to delete", variant: "destructive" });
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
   const roleBadgeVariant = (role: UserRoleName) =>
     role === "admin" ? "default" : role === "moderator" ? "secondary" : "outline";
 
@@ -104,14 +150,19 @@ export function AdminUsers() {
                   <TableHead>Withdrawn</TableHead>
                   <TableHead>Role</TableHead>
                   <TableHead>Joined</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow></TableHeader>
                 <TableBody>
                   {filtered?.map((u) => (
                     <TableRow key={u.id}>
                       <TableCell>
-                        <div className="font-medium">{u.full_name || "—"}</div>
+                        <div className="font-medium flex items-center gap-2">
+                          {u.full_name || "—"}
+                          {u.banned && <Badge variant="destructive" className="text-[10px]">Banned</Badge>}
+                        </div>
                         <div className="text-xs text-muted-foreground">{u.email}</div>
                         {u.phone_number && <div className="text-xs text-muted-foreground">{u.phone_number}</div>}
+                        {u.banned && u.ban_reason && <div className="text-[10px] text-destructive">Reason: {u.ban_reason}</div>}
                       </TableCell>
                       <TableCell className="flex items-center gap-1"><Wallet className="h-3 w-3 text-muted-foreground" />${Number(u.total_balance).toFixed(2)}</TableCell>
                       <TableCell className="text-success">${Number(u.total_earnings).toFixed(2)}</TableCell>
@@ -136,6 +187,31 @@ export function AdminUsers() {
                         </div>
                       </TableCell>
                       <TableCell className="text-muted-foreground text-xs">{u.created_at ? format(new Date(u.created_at), "MMM d, yyyy") : "—"}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            size="sm"
+                            variant={u.banned ? "outline" : "ghost"}
+                            className="h-7 px-2 text-xs"
+                            disabled={updatingId === u.id || u.role === "admin"}
+                            onClick={() => toggleBan(u.id, !!u.banned, u.full_name || u.email || "user")}
+                            title={u.role === "admin" ? "Cannot ban an admin" : u.banned ? "Unban user" : "Ban user"}
+                          >
+                            {u.banned ? <ShieldCheck className="h-3.5 w-3.5" /> : <Ban className="h-3.5 w-3.5" />}
+                            <span className="ml-1">{u.banned ? "Unban" : "Ban"}</span>
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-7 px-2 text-xs text-destructive hover:text-destructive"
+                            disabled={updatingId === u.id || u.role === "admin"}
+                            onClick={() => removeUser(u.id, u.full_name || u.email || "user")}
+                            title={u.role === "admin" ? "Cannot delete an admin" : "Permanently delete user"}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
