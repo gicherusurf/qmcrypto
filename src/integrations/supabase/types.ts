@@ -568,6 +568,22 @@ export type Database = {
         Args: { _target_profile_id: string }
         Returns: string
       }
+      franchise_get_members: {
+        Args: Record<string, never>
+        Returns: { id: string; full_name: string; current_rank: string; total_balance: number; total_earnings: number; total_withdrawn: number; team_volume: number; banned: boolean; created_at: string }[]
+      }
+      franchise_get_deposits: {
+        Args: Record<string, never>
+        Returns: { id: string; member_name: string; amount_usd: number; method: string; status: string; created_at: string; processed_at: string }[]
+      }
+      franchise_get_withdrawals: {
+        Args: Record<string, never>
+        Returns: { id: string; member_name: string; amount: number; net_amount: number; method: string; status: string; requested_at: string; processed_at: string }[]
+      }
+      franchise_get_stats: {
+        Args: Record<string, never>
+        Returns: { total_members: number; total_deposits: number; total_withdrawals: number; total_commissions: number; total_team_balance: number }[]
+      }
       get_my_referral_stats: {
         Args: never
         Returns: {
@@ -652,7 +668,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "user" | "moderator"
+      app_role: "admin" | "user" | "moderator" | "franchise"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -780,7 +796,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "user"],
+      app_role: ["admin", "user", "moderator", "franchise"],
     },
   },
 } as const

@@ -12,6 +12,7 @@ import Signals from "./pages/Signals";
 import TradeHistory from "./pages/TradeHistory";
 import Admin from "./pages/Admin";
 import Affiliate from "./pages/Affiliate";
+import Franchise from "./pages/Franchise";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/history" element={<TradeHistory />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/affiliate" element={<Affiliate />} />
+            <Route path="/franchise" element={<Franchise />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <PWAInstallPrompt />

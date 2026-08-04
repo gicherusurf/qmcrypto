@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 
-type UserRoleName = "user" | "moderator" | "admin";
+type UserRoleName = "user" | "moderator" | "admin" | "franchise";
 
 export function AdminUsers() {
   const [search, setSearch] = useState("");
@@ -182,6 +182,7 @@ export function AdminUsers() {
                               <SelectItem value="user">User</SelectItem>
                               <SelectItem value="moderator">Moderator</SelectItem>
                               <SelectItem value="admin">Admin</SelectItem>
+                              <SelectItem value="franchise">Franchise</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>

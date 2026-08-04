@@ -24,6 +24,7 @@ interface AuthContextType {
   profile: Profile | null;
   isAdmin: boolean;
   isModerator: boolean;
+  isFranchise: boolean;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string, fullName: string, phoneNumber: string, bootstrapCode?: string, referralCode?: string) => Promise<{ error: Error | null }>;
@@ -39,6 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isModerator, setIsModerator] = useState(false);
+  const [isFranchise, setIsFranchise] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = async (userId: string) => {
@@ -55,14 +57,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .from("user_roles")
       .select("role")
       .eq("user_id", userId)
-      .in("role", ["admin", "moderator"]);
+      .in("role", ["admin", "moderator", "franchise"]);
     if (error || !data) {
       setIsAdmin(false);
       setIsModerator(false);
+      setIsFranchise(false);
       return;
     }
     setIsAdmin(data.some((r) => r.role === "admin"));
     setIsModerator(data.some((r) => r.role === "moderator"));
+    setIsFranchise(data.some((r) => r.role === "franchise"));
   };
 
   const refreshProfile = async () => {
@@ -128,7 +132,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, profile, isAdmin, isModerator, loading, signIn, signUp, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{ user, session, profile, isAdmin, isModerator, isFranchise, loading, signIn, signUp, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );
