@@ -128,13 +128,13 @@ export default function Franchise() {
       <main className="container mx-auto px-4 pt-24 pb-12">
         <div className="mb-8">
           <h1 className="font-display text-3xl font-bold mb-2">
-            {showPicker ? <>Partner <span className="gradient-text">Overview</span></> : <>My <span className="gradient-text">Partnership</span></>}
+            {showPicker ? <>Partner <span className="gradient-text">Overview</span></> : <>Partner <span className="gradient-text">Admin</span></>}
           </h1>
-          <p className="text-muted-foreground">
-            {showPicker
-              ? "Select a partner to preview their scoped panel (read-only)."
-              : "Your business network and performance. You have view-only access to your team."}
-          </p>
+          {showPicker && (
+            <p className="text-muted-foreground">
+              Select a partner to preview their scoped panel (read-only).
+            </p>
+          )}
         </div>
 
         {isAdmin && (
