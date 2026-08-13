@@ -334,7 +334,6 @@ function SignalBubble({
                 <p className="text-muted-foreground mt-0.5">You need at least $200 in your balance to take signals. Your balance: ${balance.toFixed(2)}.</p>
               </div>
             ) : (
-            <div className="space-y-2">
             <div className="flex flex-wrap gap-2">
               <Input
                 type="number"
@@ -358,10 +357,6 @@ function SignalBubble({
               <Button onClick={handleTake} disabled={busy} variant="hero" className="shrink-0 w-full sm:w-auto">
                 {busy ? "Opening..." : "Take Signal"}
               </Button>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Investable capital: <span className="text-primary font-medium">${capitalBase.toFixed(2)}</span> — your stake is capped at this (deposits + referral earnings). Wins pay 1.2% of your stake.
-            </p>
             </div>
             )
           ) : (
