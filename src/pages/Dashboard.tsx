@@ -10,6 +10,7 @@ import { WithdrawalDialog } from "@/components/dashboard/WithdrawalDialog";
 import { WithdrawalHistory } from "@/components/dashboard/WithdrawalHistory";
 import { InstallAppBanner } from "@/components/InstallAppBanner";
 import { KycPromptBanner } from "@/components/dashboard/KycPromptBanner";
+import { WhatsAppSupport } from "@/components/dashboard/WhatsAppSupport";
 import { RecentTrades } from "@/components/dashboard/RecentTrades";
 import { ReferralCard } from "@/components/dashboard/ReferralCard";
 import { SubscriptionCard } from "@/components/dashboard/SubscriptionCard";
@@ -136,6 +137,7 @@ export default function Dashboard() {
         <div className="mb-8"><ReferralCard /></div>
         <div className="mb-8"><RecentTrades /></div>
         <div className="mb-8"><WithdrawalHistory /></div>
+        <div className="mb-8"><WhatsAppSupport /></div>
         <InstallAppBanner />
       </main>
 
