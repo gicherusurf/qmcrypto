@@ -686,6 +686,10 @@ export type Database = {
         Args: { _amount_usd: number; _phone: string }
         Returns: string
       }
+      my_capital_base: {
+        Args: Record<string, never>
+        Returns: number
+      }
       take_signal: {
         Args: { _signal_id: string; _stake: number }
         Returns: string

@@ -67,6 +67,17 @@ export default function Signals() {
     refetchOnWindowFocus: true,
   });
 
+  const { data: capitalBase } = useQuery({
+    queryKey: ["capital-base", profile?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("my_capital_base");
+      if (error) throw error;
+      return Number(data ?? 0);
+    },
+    enabled: !!profile?.id,
+    refetchInterval: 30000,
+  });
+
   const { data: takes, refetch: refetchTakes } = useQuery({
     queryKey: ["user-takes", profile?.id],
     queryFn: async () => {
@@ -140,6 +151,7 @@ export default function Signals() {
                   signal={s}
                   take={takesById.get(s.id)}
                   balance={Number(profile.total_balance)}
+                  capitalBase={capitalBase ?? 0}
                   livePrice={prices?.[s.pair]}
                   quota={quota}
                   onTaken={() => {
@@ -161,6 +173,7 @@ function SignalBubble({
   signal,
   take,
   balance,
+  capitalBase,
   livePrice,
   quota,
   onTaken,
@@ -168,6 +181,7 @@ function SignalBubble({
   signal: SignalRow;
   take: TakeRow | undefined;
   balance: number;
+  capitalBase: number;
   livePrice: number | undefined;
   quota: SignalQuota | undefined | null;
   onTaken: () => void;
@@ -196,6 +210,11 @@ function SignalBubble({
       toast({ title: "Insufficient balance", variant: "destructive" });
       return;
     }
+    const effective = Math.min(amt, capitalBase);
+    if (effective <= 0) {
+      toast({ title: "No investable capital", description: "Your stake is limited to your invested capital (deposits + referral earnings). Make a deposit to trade.", variant: "destructive" });
+      return;
+    }
     setBusy(true);
     const { error } = await supabase.rpc("take_signal", { _signal_id: signal.id, _stake: amt });
     setBusy(false);
@@ -203,7 +222,12 @@ function SignalBubble({
       toast({ title: "Could not take signal", description: error.message, variant: "destructive" });
       return;
     }
-    toast({ title: "Trade opened", description: `Staked $${amt.toFixed(2)} on ${signal.pair}` });
+    toast({
+      title: "Trade opened",
+      description: effective < amt
+        ? `Staked $${effective.toFixed(2)} (capped at your invested capital) on ${signal.pair}`
+        : `Staked $${effective.toFixed(2)} on ${signal.pair}`,
+    });
     setStake("");
     onTaken();
   };
@@ -310,6 +334,7 @@ function SignalBubble({
                 <p className="text-muted-foreground mt-0.5">You need at least $200 in your balance to take signals. Your balance: ${balance.toFixed(2)}.</p>
               </div>
             ) : (
+            <div className="space-y-2">
             <div className="flex flex-wrap gap-2">
               <Input
                 type="number"
@@ -324,8 +349,8 @@ function SignalBubble({
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setStake(balance.toFixed(2))}
-                disabled={busy || balance <= 0}
+                onClick={() => setStake(Math.min(balance, capitalBase).toFixed(2))}
+                disabled={busy || Math.min(balance, capitalBase) <= 0}
                 className="shrink-0"
               >
                 Max
@@ -333,6 +358,10 @@ function SignalBubble({
               <Button onClick={handleTake} disabled={busy} variant="hero" className="shrink-0 w-full sm:w-auto">
                 {busy ? "Opening..." : "Take Signal"}
               </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Investable capital: <span className="text-primary font-medium">${capitalBase.toFixed(2)}</span> — your stake is capped at this (deposits + referral earnings). Wins pay 1.2% of your stake.
+            </p>
             </div>
             )
           ) : (
