@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Loader2, Users, DollarSign, ArrowUpRight, Radio, Gift, TrendingUp, Landmark, Wallet } from "lucide-react";
+import { Loader2, Users, DollarSign, ArrowUpRight, Radio, Gift, TrendingUp, Landmark, Wallet, CreditCard } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -31,6 +31,7 @@ export function AdminOverview() {
         recentReferrals,
         recentUsers,
         allBalancesRes,
+        subsRes,
       ] = await Promise.all([
         supabase.from("profiles").select("*", { count: "exact", head: true }),
         supabase.from("deposits").select("amount_usd"),
@@ -68,6 +69,7 @@ export function AdminOverview() {
           .order("created_at", { ascending: false })
           .limit(5),
         supabase.from("profiles").select("total_balance"),
+        supabase.from("subscription_transactions").select("amount, status"),
       ]);
 
       const sum = (rows: { amount_usd?: number | string; amount?: number | string; commission_amount?: number | string; stake_amount?: number | string; profit_amount?: number | string; net_amount?: number | string; total_balance?: number | string }[] | null | undefined, key: string) =>
@@ -77,6 +79,11 @@ export function AdminOverview() {
       const approvedDeposits = sum(depositsApprRes.data, "amount_usd");
       const withdrawalsPaidNet = sum(withdrawalsCompRes.data, "net_amount");
       const sumUserBalances = sum(allBalancesRes.data, "total_balance");
+
+      const subsRows = ((subsRes.data as unknown) as { amount?: number | string; status?: string }[]) || [];
+      const subsSuccess = subsRows.filter((r) => r.status === "success");
+      const subscriptionRevenue = subsSuccess.reduce((s, r) => s + Number(r.amount ?? 0), 0);
+      const subscriptionCount = subsSuccess.length;
 
       return {
         totalUsers: usersRes.count || 0,
@@ -104,6 +111,10 @@ export function AdminOverview() {
           takesCount: (takesRes.data || []).length,
           totalStaked: sum(takesRes.data, "stake_amount"),
           totalProfit: sum(takesRes.data, "profit_amount"),
+        },
+        subscriptions: {
+          revenue: subscriptionRevenue,
+          count: subscriptionCount,
         },
         recentDeposits: recentDeposits.data || [],
         recentWithdrawals: recentWithdrawals.data || [],
@@ -137,6 +148,7 @@ export function AdminOverview() {
         <StatCard icon={ArrowUpRight} label="Pending Withdrawals" value={data.withdrawals.pendingCount} tone="warning" />
         <StatCard icon={Radio} label="Open Signals" value={`${data.signals.open}/${data.signals.total}`} tone="info" />
         <StatCard icon={Gift} label="Referral Payouts" value={`$${data.referrals.totalPaid.toFixed(2)}`} tone="primary" />
+        <StatCard icon={CreditCard} label="Subscription Revenue" value={`$${data.subscriptions.revenue.toFixed(2)}`} tone="success" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

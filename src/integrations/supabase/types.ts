@@ -170,6 +170,42 @@ export type Database = {
           },
         ]
       }
+      subscription_transactions: {
+        Row: {
+          id: string
+          user_id: string
+          amount: number
+          previous_available_balance: number | null
+          new_available_balance: number | null
+          period_start: string | null
+          period_end: string | null
+          status: string
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          amount: number
+          previous_available_balance?: number | null
+          new_available_balance?: number | null
+          period_start?: string | null
+          period_end?: string | null
+          status: string
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          amount?: number
+          previous_available_balance?: number | null
+          new_available_balance?: number | null
+          period_start?: string | null
+          period_end?: string | null
+          status?: string
+          created_at?: string | null
+        }
+        Relationships: []
+      }
       push_subscriptions: {
         Row: {
           auth: string
