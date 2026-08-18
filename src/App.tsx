@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/lib/auth";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import { WhatsAppFloat } from "@/components/WhatsAppFloat";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -36,6 +37,7 @@ const App = () => (
             <Route path="*" element={<NotFound />} />
           </Routes>
           <PWAInstallPrompt />
+          <WhatsAppFloat />
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
